@@ -1,18 +1,18 @@
 local menuengine = {}
 menuengine.VERSION = "0.9.9e Beta"
-
-
+local statuses = require 'src.tools.menustatus'
 -- Defaults
 menuengine.settings = {
     disabled = false,
     target = nil,  -- WARNING: Deprecrated
     args = nil,
-    colorSelected = {.8,.4,.4},
+    colorSelected = {.4,.8,.4},
     colorNormal = {1, 1, 1},
-    symbolSelectedBegin = "[ ",
-    symbolSelectedEnd = " ]",
-    normalSelectedBegin = "  ",
+    symbolSelectedBegin = "",
+    symbolSelectedEnd = ">",
+    normalSelectedBegin = "",
     normalSelectedEnd = "",
+    status = "This does something",
     sndMove = nil,
     sndSuccess = nil,
     mouseDisabled = false,
@@ -63,6 +63,7 @@ function menuengine.new(x, y, font, space)
     self.target = menuengine.settings.target  -- WARNING: Deprecated
     self.colorSelected = menuengine.settings.colorSelected
     self.colorNormal = menuengine.settings.colorNormal
+    self.status = menuengine.settings.status
     self.symbolSelectedBegin = menuengine.settings.symbolSelectedBegin
     self.symbolSelectedEnd = menuengine.settings.symbolSelectedEnd
     self.normalSelectedBegin = menuengine.settings.normalSelectedBegin
@@ -73,7 +74,7 @@ function menuengine.new(x, y, font, space)
     self.args = menuengine.settings.args
 
     -- Add Entry
-    function self:addEntry(text, func, args, font, colorNormal, colorSelected)
+    function self:addEntry(text, func, args, font, colorNormal, colorSelected, status)
         if menuengine.stop_on_nil_functions and func == nil and self.target == nil then  -- WARNING: "target" Deprecrated
             error("menuengine: nil is not a function")
         else
@@ -86,6 +87,7 @@ function menuengine.new(x, y, font, space)
             self.entries[#self.entries].args = args or self.args
             self.entries[#self.entries].colorNormal = colorNormal or self.colorNormal
             self.entries[#self.entries].colorSelected = colorSelected or self.colorSelected
+            self.entries[#self.entries].status = status or self.status
 
             -- Other Options
             self.entries[#self.entries].symbolSelectedBegin = self.symbolSelectedBegin
@@ -128,11 +130,18 @@ function menuengine.new(x, y, font, space)
         self:setSpace(space)
     end
 
+    function self:setStatus(status)
+        status = status or {}
+        for i = 1, #self.entries do 
+            self.entries[i].status = status[i]
+        end
+    end
+
+
     -- love.draw
     function self:draw()
         -- save old font & color
         local oldFont, r,g,b,a
-        oldFont = love.graphics.getFont()
         r,g,b,a = love.graphics.getColor()
 
         local i
@@ -141,15 +150,18 @@ function menuengine.new(x, y, font, space)
                 love.graphics.setFont(self.entries[i].font)
                 if self.cursor == i and #self.entries[i].text > 0 then
                     love.graphics.setColor(self.entries[i].colorSelected)
-                    love.graphics.print(self.entries[i].symbolSelectedBegin..self.entries[i].text..self.entries[i].symbolSelectedEnd,self.entries[i].x,self.entries[i].y)
+                    love.graphics.printf(self.entries[i].symbolSelectedBegin..self.entries[i].text..self.entries[i].symbolSelectedEnd,self.entries[i].x,self.entries[i].y, love.graphics.getWidth() - 50, "left")
+                    
+                    love.graphics.setColor(0.9,0.5,0.4)
+                    love.graphics.setFont(self.font)
+                    love.graphics.printf(self.entries[i].status,self.entries[i].x,love.graphics.getHeight() - 100, love.graphics.getWidth(), "left")
                 else
                     love.graphics.setColor(self.entries[i].colorNormal)
-                    love.graphics.print(self.entries[i].normalSelectedBegin..self.entries[i].text..self.entries[i].normalSelectedEnd,self.entries[i].x,self.entries[i].y)
+                    love.graphics.printf(self.entries[i].normalSelectedBegin..self.entries[i].text..self.entries[i].normalSelectedEnd,self.entries[i].x,self.entries[i].y, love.graphics.getWidth(),  "left")
                 end
             end
         end
         -- revert old font & color
-        love.graphics.setFont(oldFont)
         love.graphics.setColor(r,g,b,a)
     end
 
@@ -292,6 +304,7 @@ function menuengine.new(x, y, font, space)
         self.sndSuccess = snd
     end
 
+    self:setStatus(status)
     self:setFont(font, space)
     table.insert(menus, self)
     return self
