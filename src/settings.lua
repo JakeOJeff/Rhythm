@@ -1,8 +1,8 @@
 local settings = {
     difficulty = {
-        "easy",
-        "medium", 
-        "hard"
+        " Easy",
+        " Medium", 
+        " Hard"
     },
     keybinds = {
         "d", 

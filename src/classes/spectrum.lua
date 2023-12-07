@@ -1,5 +1,5 @@
 require "src.libs.luafft"
-themes = require("src.tools.themes")
+themes = require("src.themes")
 local spectrum = {}
 
 abs = math.abs
@@ -29,7 +29,6 @@ spectrumY = ScreenSizeH/2 -- ScreenSizeH
 local MusicPos = obj:tell("samples") 
 local MusicSize = sdata:getSampleCount() 
 
-if MusicPos >= MusicSize - 1536 then wave_size=2 mtime=0 timecolor=nil love.audio.rewind(sound) end 
 
 local List = {} 
 for i= MusicPos, MusicPos + (Size-1) do
@@ -46,6 +45,7 @@ end
 spectrum = fft(List, false) 
 devide(spectrum, wave_size) 
 UpdateSpectrum = true
+tileSpeedMax = 300 * avg(table)
 end
 
 function spectro_show(dir)
@@ -70,11 +70,17 @@ function spectro_show(dir)
     end     
 end
 
-
+function avg(table)
+  local sum = 0
+  for i = 1, #table do
+    sum = sum + table[i]:abs()
+  end
+  return sum/#table
+end
 function spectrum.load()
-	soundData = love.sound.newSoundData("assets/audio/LetHerGO.mp3")
-	sound = love.audio.newSource(soundData)
-	sound:play()
+	--soundData = love.sound.newSoundData("assets/audio/TS22.mp3")
+	--sound = love.audio.newSource(soundData)
+	--sound:play()
 	love.mouse.setVisible(false)
 end
 
@@ -88,23 +94,13 @@ function spectrum.keyreleased(key)
 end
 
 function spectrum.update(dt)
-
+  color = themes[selectedTheme].color
 	time=time+dt
 	mtime=mtime+dt
 
 	if math.floor(time)>=10 then 
 		types=math.random(1,5) 
 		time=0
-		if mtime>194 then types=math.random(4,5) end
-	end
-
-	if mtime>194.5 then timecolor=true end
-
-	if mtime>194.5 and mtime<200 then types=4 end
-
-	if timecolor then
-	wave_size=math.random(7)
-	color={math.random(255),math.random(255),math.random(255)}
 	end
 
 	spectro_up(sound,soundData)

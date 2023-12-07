@@ -93,9 +93,7 @@ function textAnim:draw()
     end
 end
 
-function return_shack()
-  return "JAKEOJEFF"
-end
+
 
 
 return textAnim

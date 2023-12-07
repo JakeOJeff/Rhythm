@@ -1,20 +1,27 @@
 local menu = {}
-local themes = require 'src.tools.themes'
+local themes = require 'src.themes'
+local songlist = require 'src.songs'
+local menusonglist = require 'src.menusongs'
 local menuengine = require 'src.libs.menuengine'
 local sett = require 'src.settings'
 local cmath = require 'src.tools.maths'
 local statuses = require 'src.tools.menustatus'
 
 fontSize = 30
-font = love.graphics.newFont("fonts/Salmon.ttf", fontSize)
-fontB = love.graphics
-            .newFont("fonts/Salmon.ttf", fontSize + (8 / 10 * fontSize))
+-- GOOD FONTS
+-- Gymnastik.otf
+font = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
+fontB = love.graphics.newFont("fonts/Rimouski.otf",
+                              fontSize + (8 / 10 * fontSize))
 love.graphics.setFont(font)
 local position = 0
 local themeSelectionI = nil
 
 -- Menus
-local mainmenu, play, settings, theme, visuals, effectgraphics, stats, quit, saveToMenu, switchmode
+local mainmenu, play, settings, theme, song, visuals, effectgraphics, stats,
+      songmenu, quit, saveToMenu, switchmode, selectSong
+local smX = 10
+local smY = 20
 local difficulty, switchTheme
 
 local menubg = love.graphics.newImage("assets/menubg.png")
@@ -31,20 +38,33 @@ local function saveToMenu()
     saveGame()
     menu_main()
 end
-local function play() menu.setScene("game") end
+local function play()
+    sd:stop()
+    menu.setScene("game")
+end
 
-local function settings()
+local function menu_settings()
     menuengine.disable() -- Disable every Menu...
     settings:setDisabled(false) -- ...but enable Secondmenu.
     MODE = 1
     settings.cursor = 1 -- reset Selection to the first Entry
 end
 
-local function stats()
+local function menu_stats()
     menuengine.disable() -- Disable every Menu...
     stats:setDisabled(false) -- ...but enable Secondmenu.
     MODE = 2
     stats.cursor = 1 -- reset Selection to the first Entry
+end
+
+local function songmenu()
+    if mode == "MUSIC" then
+
+        menuengine.disable() -- Disable every Menu...
+        songmenu:setDisabled(false) -- ...but enable Secondmenu.
+        MODE = 2
+        stats.cursor = 1 -- reset Selection to the first Entry
+    end
 end
 local function quit() love.event.quit() end
 
@@ -78,6 +98,14 @@ local function effectgraphics()
         effects = "OFF"
     end
 end
+local function selectSong()
+    selectedSong = songmenu.cursor
+    print(songmenu.cursor)
+    menuengine.disable() -- Disable every Menu...
+    settings:setDisabled(false) -- ...but enable Secondmenu.
+    MODE = 1
+    settings.cursor = 1 -- reset Selection to the first Entry
+end
 local function garbageCollect() collectgarbage("collect") end
 
 local function garbageCount()
@@ -92,9 +120,27 @@ local function theme()
     print(selectedTheme)
     saveGame()
 end
+local function song()
+    if selectedSong < #songlist then
+        selectedSong = selectedSong + 1
+    else
+        selectedSong = 1
+    end
+    print(selectedSong)
+    saveGame()
+end
 
 function menu:load()
     lume = require "src.libs.lume"
+    trail:load()
+    sdata = love.sound.newSoundData("assets/audio/menu/" ..
+                                        menusonglist[love.math
+                                            .random(1, #menusonglist)].audio ..
+                                        ".mp3")
+    sd = love.audio.newSource(sdata)
+    sd:play()
+    sd:setLooping(true)
+
     -- Set Menu-Wide Settings; every Entry will affected by this.
     if love.filesystem.getInfo("savedata.txt") then
         file = love.filesystem.read("savedata.txt")
@@ -102,58 +148,80 @@ function menu:load()
     else
         data = {}
     end
-    careerscore = data.careerscore or careerscore
+    careerscore = data.careerscore or 0
     score = data.score or 0
-    careercombo = data.careercombo or careercombo
+    careercombo = data.careercombo or 0
     combo = data.combo or combo
     selectedTheme = data.theme or 1
-    visualizer = data.visualizer or "OFF"
-    effects = data.effects or "OFF"
-    mode = data.mode or "DESKTOP"
+    selectedSong = data.song or 1
+    visualizer = data.visualizer or "ON"
+    effects = data.effects or "ON"
+    mode = data.mode or "MUSIC"
 
     currentlevel = data.currentlevel or 1
 
     spectrum = require 'src.classes.spectrum'
 
-    mainmenu = menuengine.new(20, 20)
+    mainmenu = menuengine.new(20, lg.getHeight() / 2 - fontSize * 4)
     mainmenu:addEntry("Play", play, args, fontB, colorNormal, {0, 1, 0})
     mainmenu:addSep()
-    mainmenu:addEntry("Settings", settings)
-    mainmenu:addEntry("Stats", stats)
+    mainmenu:addEntry("Settings", menu_settings)
+    mainmenu:addEntry("Stats", menu_stats)
     mainmenu:addEntry("Quit", quit, args, font, colorNormal, {1, 0, 0})
     mainmenu:setStatus(statuses[1])
 
-
-
     settings = menuengine.new(10, 20)
     settings:addEntry("Difficulty :" .. sett.difficulty[currentlevel],
-                      difficulty)
-    settings:addEntry("Visualizer : " .. visualizer, visuals)
-    settings:addEntry("Effects : " .. effects, effectgraphics)
+                      difficulty, args, font, {1, 1, 1}) -- 1
     settings:addEntry("Theme : " .. themes[selectedTheme].name, theme, args,
-                      font, colorNormal, themes[selectedTheme].color)
-    settings:addEntry("Memory Usage : " .. garbageCount(), garbageCollect)
-    settings:addEntry("System Tray ", writeSystemReport)
-    settings:addEntry("Mode : "..mode, switchmode)
+                      font, {.8, .8, .8}, themes[selectedTheme].color) -- 2
+    settings:addEntry("Effects : " .. effects, effectgraphics, args, font,
+                      {1, 1, 1}) -- 3
+    settings:addEntry("Visualizer : " .. visualizer, visuals, args, font,
+                      {.8, .8, .8}) -- 4
+    settings:addEntry("Song : " .. songlist[selectedSong].name, songmenu, args,
+                      font, {1, 1, 1}) -- 5
+    settings:addEntry("Mode : " .. mode, switchmode, args, font, {.8, .8, .8}) -- 6
+    settings:addEntry("Memory Usage : " .. garbageCount(), garbageCollect, args,
+                      font, {1, 1, 1}) -- 7
+    settings:addEntry("System Tray ", writeSystemReport, args, font,
+                      {.8, .8, .8}) -- 8
     settings:addSep()
     settings:addEntry("SAVE", saveToMenu, args, font, colorNormal, {0, 1, 0})
     settings:addEntry("EXIT ( UNSAVED )", menu_main, args, font, colorNormal,
                       {1, 0, 0})
     settings:setStatus(statuses[2])
 
+    songmenu = menuengine.new(smX, smY)
+    for i = 1, #songlist do
+        colorNormal = {1, 1, 1}
+        if i ~= selectedSong then
+            if i % 2 == 0 then
+                colorNormal = {.8, .8, .8}
+            else
+                colorNormal = {1, 1, 1}
+            end
+        else
+            colorNormal = {0.2, 0.2, 0.2}
+        end
+        songmenu:addEntry(songlist[i].name, selectSong, args, font, colorNormal,
+                          colorSelected, songlist[i].artist)
+    end
+
     stats = menuengine.new(10, 20)
     stats:addEntry("Career Score : " .. (careerscore or " "), func, args, font,
-                   colorNormal, {0.5, 0.5, 0.5})
-    stats:addEntry("Combo : " .. (combo or " "), func, args, font, colorNormal,
+                   {1,1,1}, {0.5, 0.5, 0.5})
+    stats:addEntry("Combo : " .. (combo or " "), func, args, font,  {1,1,1},
                    {0.5, 0.5, 0.5})
     stats:addEntry("Career Combo : " .. (careercombo or " "), func, args, font,
-                   colorNormal, {0.5, 0.5, 0.5})
+    {1,1,1}, {0.5, 0.5, 0.5})
     stats:addSep()
-    stats:addEntry("MENU", menu_main, args, font, colorNormal, {1, 0, 0})
+    stats:addEntry("MENU", menu_main)
     for i = 1, #stats.entries - 1 do
         stats.entries[i].symbolSelectedBegin = "<"
         stats.entries[i].symbolSelectedEnd = ">"
     end
+    stats:setStatus(statuses[3])
     -- Disable Every Menu, then activate Mainmenu
     menuengine.disable()
     mainmenu:setDisabled(false)
@@ -167,32 +235,93 @@ function menu:draw()
     sy = love.graphics:getHeight() / menubg:getHeight()
     love.graphics.draw(menubg, myQuad, 0, 0, 0, sx, sy)
 
+    if not settings.disabled then
+        if settings.cursor == 2 or settings.cursor == 3 or settings.cursor == 4 then
+            love.graphics.rectangle("line", settings.entries[2].x,
+                                    settings.entries[2].y,
+                                    math.max(
+                                        math.max(#settings.entries[2].text,
+                                                 #settings.entries[3].text),
+                                        #settings.entries[4].text) * fontSize /
+                                        2 + 35, 35 * 3)
+        elseif settings.cursor == 5 then
+            love.graphics.rectangle("line", settings.entries[5].x,
+                                    settings.entries[5].y,
+                                    math.max(#settings.entries[5].text,
+                                             #settings.entries[6].text) *
+                                        fontSize / 2 + 35, 35 * 2)
+        elseif settings.cursor == 6 then
+            love.graphics.rectangle("line", settings.entries[4].x,
+                                    settings.entries[4].y,
+                                    math.max(
+                                        math.max(#settings.entries[5].text,
+                                                 #settings.entries[6].text),
+                                        #settings.entries[4].text) * fontSize /
+                                        2 + 35, 35 * 3)
+        end
+    end
     menuengine.draw()
+    if effects == "ON" then
+        -- trail:draw()
+    end
 end
 
 function menu:update(dt)
     position = position - 1
+    if effects == "ON" then trail:update(dt) end
 
     -- UPDATION OF SETTINGS
     settings.entries[1].text = "Difficulty :" .. sett.difficulty[currentlevel]
-    settings.entries[2].text = "Visualizer : " .. visualizer
     settings.entries[3].text = "Effects : " .. effects
 
-    settings.entries[4].text = "Theme : " .. themes[selectedTheme].name
-    settings.entries[4].colorSelected = themes[selectedTheme].color
+    settings.entries[2].text = "Theme : " .. themes[selectedTheme].name
+    settings.entries[2].colorSelected = themes[selectedTheme].color
 
-    settings.entries[5].text = "Memory Usage : " .. garbageCount()
-    settings.entries[7].text = "Mode : "..mode
+    if mode ~= "DESKTOP" then
+        settings.entries[4].text = "Visualizer : " .. visualizer
+        settings.entries[5].text = "Song : " .. songlist[selectedSong].name
+    else
+        settings.entries[4].text = "Visualizer - For Music Mode "
+        settings.entries[5].text = "Song  - For Music Mode "
+    end
+
+    settings.entries[7].text = "Memory Usage : " .. garbageCount()
+    settings.entries[6].text = "Mode : " .. mode
     myQuad = love.graphics.newQuad(-position, 0, menubg:getWidth() * 2,
                                    menubg:getHeight() * 2, menubg:getWidth(),
                                    menubg:getHeight())
+    if not songmenu.disabled then songmenu:movePosition(smX, smY) end
+    for i = 1, #songlist do
+        colorNormal = {1, 1, 1}
+        if i ~= selectedSong then
+            if i % 2 == 0 then
+                colorNormal = {.8, .8, .8}
+            else
+                colorNormal = {1, 1, 1}
+            end
+        else
+            colorNormal = {0.2, 0.2, 0.2}
+        end
+        songmenu.entries[i].colorNormal = colorNormal
+    end
     menuengine.update()
 end
 
 function menu:keypressed(key, scancode, isrepeat)
     menuengine.keypressed(scancode)
 
-    if scancode == "escape" then love.event.quit() end
+    if scancode == "escape" then
+        if not mainmenu.disabled then
+            love.event.quit()
+        elseif not settings.disabled then
+            saveToMenu()
+        elseif not songmenu.disabled then
+            menu_settings()
+        elseif not stats.disabled then
+            menu_main()
+        end
+
+    end
 
     if key == "r" then
         if love.filesystem.getInfo("savedata.txt") then
@@ -222,5 +351,21 @@ function menu:keypressed(key, scancode, isrepeat)
     end
 end
 
-function menu:mousemoved(x, y, dx, dy, istouch) menuengine.mousemoved(x, y) end
+function menu:mousemoved(x, y, dx, dy, istouch)
+    menuengine.mousemoved(x, y)
+    trail:mousemoved(x, y, dx, dy, istouch)
+end
+function menu:wheelmoved(x, y)
+    if not songmenu.disabled then
+        if y > 0 then
+            if smY < 20 then
+            smY = smY + 10
+        end
+
+        elseif y < 0 then
+            smY = smY - 10
+        end
+    end
+
+end
 return menu

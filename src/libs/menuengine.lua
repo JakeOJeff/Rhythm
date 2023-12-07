@@ -4,9 +4,9 @@ local statuses = require 'src.tools.menustatus'
 -- Defaults
 menuengine.settings = {
     disabled = false,
-    target = nil,  -- WARNING: Deprecrated
+    target = nil, -- WARNING: Deprecrated
     args = nil,
-    colorSelected = {.4,.8,.4},
+    colorSelected = {.4, .8, .4},
     colorNormal = {1, 1, 1},
     symbolSelectedBegin = "",
     symbolSelectedEnd = ">",
@@ -15,38 +15,29 @@ menuengine.settings = {
     status = "This does something",
     sndMove = nil,
     sndSuccess = nil,
-    mouseDisabled = false,
+    mouseDisabled = false
 }
-
 
 -- Collect every menu
 local menus = {}
 
-
 -- Keyboard-Handling. Add your own Scancodes here if you want.
 local KEY = {}
-KEY.up = {scancodes={"up", "w", "kp8"}}
-KEY.down = {scancodes={"down", "s", "kp2", "kp5"}}
-KEY.accept = {scancodes={"return", "kpenter", "kp0", "space"}}
-
+KEY.up = {scancodes = {"up", "w", "kp8"}}
+KEY.down = {scancodes = {"down", "s", "kp2", "kp5"}}
+KEY.accept = {scancodes = {"return", "kpenter", "kp0", "space"}}
 
 -- Give every KEY a "pressed"-value
-local k,v
-for k, v in pairs(KEY) do
-    KEY[k].pressed = false
-end
-
+local k, v
+for k, v in pairs(KEY) do KEY[k].pressed = false end
 
 -- Mouse
 menuengine.mouse_x = 0
 menuengine.mouse_y = 0
 menuengine.clicked = false
 
-
 -- Error-Handling if nil-Function is there. WARNING: On future Releases, This Setting will be set to "true".
 menuengine.stop_on_nil_functions = false
-
-
 
 -- Constructor
 function menuengine.new(x, y, font, space)
@@ -60,7 +51,7 @@ function menuengine.new(x, y, font, space)
 
     -- Setting up Defaults. TODO: There must be a better way to do this...
     self.disabled = menuengine.settings.disabled
-    self.target = menuengine.settings.target  -- WARNING: Deprecated
+    self.target = menuengine.settings.target -- WARNING: Deprecated
     self.colorSelected = menuengine.settings.colorSelected
     self.colorNormal = menuengine.settings.colorNormal
     self.status = menuengine.settings.status
@@ -74,26 +65,34 @@ function menuengine.new(x, y, font, space)
     self.args = menuengine.settings.args
 
     -- Add Entry
-    function self:addEntry(text, func, args, font, colorNormal, colorSelected, status)
-        if menuengine.stop_on_nil_functions and func == nil and self.target == nil then  -- WARNING: "target" Deprecrated
+    function self:addEntry(text, func, args, font, colorNormal, colorSelected,
+                           status)
+        if menuengine.stop_on_nil_functions and func == nil and self.target ==
+            nil then -- WARNING: "target" Deprecrated
             error("menuengine: nil is not a function")
         else
-            self.entries[#self.entries+1] = {}
+            self.entries[#self.entries + 1] = {}
             self.entries[#self.entries].text = text
             self.entries[#self.entries].x = x
-            self.entries[#self.entries].y = y + (#self.entries-1) * self.space
+            self.entries[#self.entries].y = y + (#self.entries - 1) * self.space
             self.entries[#self.entries].font = font or self.font
-            self.entries[#self.entries].func = func or function()end
+            self.entries[#self.entries].func = func or function() end
             self.entries[#self.entries].args = args or self.args
-            self.entries[#self.entries].colorNormal = colorNormal or self.colorNormal
-            self.entries[#self.entries].colorSelected = colorSelected or self.colorSelected
+            self.entries[#self.entries].colorNormal = colorNormal or
+                                                          self.colorNormal
+            self.entries[#self.entries].colorSelected = colorSelected or
+                                                            self.colorSelected
             self.entries[#self.entries].status = status or self.status
 
             -- Other Options
-            self.entries[#self.entries].symbolSelectedBegin = self.symbolSelectedBegin
-            self.entries[#self.entries].symbolSelectedEnd = self.symbolSelectedEnd
-            self.entries[#self.entries].normalSelectedBegin = self.normalSelectedBegin
-            self.entries[#self.entries].normalSelectedEnd = self.normalSelectedEnd
+            self.entries[#self.entries].symbolSelectedBegin =
+                self.symbolSelectedBegin
+            self.entries[#self.entries].symbolSelectedEnd =
+                self.symbolSelectedEnd
+            self.entries[#self.entries].normalSelectedBegin =
+                self.normalSelectedBegin
+            self.entries[#self.entries].normalSelectedEnd =
+                self.normalSelectedEnd
             self.entries[#self.entries].sndMove = self.sndMove
             self.entries[#self.entries].sndSuccess = self.sndSuccess
             self.entries[#self.entries].disabled = self.disabled
@@ -108,108 +107,114 @@ function menuengine.new(x, y, font, space)
         self.y = newy
 
         local i
-        for i=1,#self.entries do
+        for i = 1, #self.entries do
             self.entries[i].x = newx
-            self.entries[i].y = newy + (i-1) * self.space
+            self.entries[i].y = newy + (i - 1) * self.space
         end
     end
 
     -- Set Space for all Entries
-    function self:setSpace(space)
-        self.space = space or self.font:getHeight()
-    end
+    function self:setSpace(space) self.space = space or self.font:getHeight() end
 
     -- Change Font of every existing Entry
     function self:setFont(font, space)
         font = font or love.graphics.getFont()
         local i
-        for i=1,#self.entries do
-            self.entries[i].font = font
-        end
+        for i = 1, #self.entries do self.entries[i].font = font end
         self.font = font
         self:setSpace(space)
     end
 
     function self:setStatus(status)
         status = status or {}
-        for i = 1, #self.entries do 
-            self.entries[i].status = status[i]
+        for i = 1, #self.entries do
+            self.entries[i].status = status[i] or "Yea, idk what this does"
         end
     end
-
 
     -- love.draw
     function self:draw()
         -- save old font & color
-        local oldFont, r,g,b,a
-        r,g,b,a = love.graphics.getColor()
+        local oldFont, r, g, b, a
+        r, g, b, a = love.graphics.getColor()
 
         local i
-        for i=1,#self.entries do
+        for i = 1, #self.entries do
             if not self.entries[i].disabled then
                 love.graphics.setFont(self.entries[i].font)
                 if self.cursor == i and #self.entries[i].text > 0 then
                     love.graphics.setColor(self.entries[i].colorSelected)
-                    love.graphics.printf(self.entries[i].symbolSelectedBegin..self.entries[i].text..self.entries[i].symbolSelectedEnd,self.entries[i].x,self.entries[i].y, love.graphics.getWidth() - 50, "left")
-                    
-                    love.graphics.setColor(0.9,0.5,0.4)
+
+                    if self.entries[i].status ~= "" then
+                        love.graphics.rectangle("line", self.entries[i].x,
+                                                self.entries[i].y,
+                                                #self.entries[i].text * fontSize /
+                                                    2 + 35, 35)
+                        --[[if not self.entries[i].disabled and menuengine.mouse_y > self.entries[i].y and menuengine.mouse_y < self.entries[i].y + self.space and #self.entries[i].text > 0 and
+                        menuengine.mouse_x > self.entries[i].x and menuengine.mouse_x < self.entries[i].x + self.entries[i].font:getWidth(self.entries[i].text..self.normalSelectedBegin..self.normalSelectedEnd..self.symbolSelectedEnd) then
+                        love.graphics.setColor(1,1,1,0.5)
+                            love.graphics.circle("fill", menuengine.mouse_x, menuengine.mouse_y, 6)
+                        end]]
+
+                    end
+                    love.graphics.setColor(self.entries[i].colorSelected)
+
+                    love.graphics.print(self.entries[i].symbolSelectedBegin ..
+                                            self.entries[i].text ..
+                                            self.entries[i].symbolSelectedEnd,
+                                        self.entries[i].x, self.entries[i].y)
+
+                    love.graphics.setColor(0.9, 0.5, 0.4)
                     love.graphics.setFont(self.font)
-                    love.graphics.printf(self.entries[i].status,self.entries[i].x,love.graphics.getHeight() - 100, love.graphics.getWidth(), "left")
+                    love.graphics.printf(self.entries[i].status,
+                                         self.entries[i].x,
+                                         love.graphics.getHeight() - 100,
+                                         love.graphics.getWidth() - 20)
+
                 else
                     love.graphics.setColor(self.entries[i].colorNormal)
-                    love.graphics.printf(self.entries[i].normalSelectedBegin..self.entries[i].text..self.entries[i].normalSelectedEnd,self.entries[i].x,self.entries[i].y, love.graphics.getWidth(),  "left")
+                    love.graphics.print(self.entries[i].normalSelectedBegin ..
+                                            self.entries[i].text ..
+                                            self.entries[i].normalSelectedEnd,
+                                        self.entries[i].x, self.entries[i].y)
                 end
             end
         end
         -- revert old font & color
-        love.graphics.setColor(r,g,b,a)
+        love.graphics.setColor(r, g, b, a)
     end
 
     -- Add Separator
-    function self:addSep()
-        return self:addEntry("", function()end)
-    end
-    
+    function self:addSep() return self:addEntry("", function() end) end
+
     -- Set Default args
     function self:setArgs(args)
         local i
-        for i=1,#self.entries do
-            self.entries[i].args = args
-        end
+        for i = 1, #self.entries do self.entries[i].args = args end
     end
 
     -- Disable this Menu; "draw" and "update" will have no effects.
     function self:setDisabled(value)
         local i
-        for i=1,#self.entries do
-            self.entries[i].disabled = value
-        end
+        for i = 1, #self.entries do self.entries[i].disabled = value end
         self.disabled = value
     end
 
     -- Enable Mouse
-    function self:mouseEnable()
-        self.mouseDisabled = false
-    end
+    function self:mouseEnable() self.mouseDisabled = false end
 
     -- Disable Mouse
-    function self:mouseDisable()
-        self.mouseDisabled = true
-    end
+    function self:mouseDisable() self.mouseDisabled = true end
 
     function self:setColorNormal(color)
         local i
-        for i=1,#self.entries do
-            self.entries[i].colorNormal = color
-        end
+        for i = 1, #self.entries do self.entries[i].colorNormal = color end
         self.colorNormal = color
     end
 
     function self:setColorSelected(color)
         local i
-        for i=1,#self.entries do
-            self.entries[i].colorSelected = color
-        end
+        for i = 1, #self.entries do self.entries[i].colorSelected = color end
         self.colorSelected = color
     end
 
@@ -221,7 +226,8 @@ function menuengine.new(x, y, font, space)
         elseif self.cursor > #self.entries then
             self.cursor = 1
         end
-        if #self.entries[self.cursor].text == 0 or self.entries[self.cursor].disabled then
+        if #self.entries[self.cursor].text == 0 or
+            self.entries[self.cursor].disabled then
             self:moveCursor(d)
         elseif self.entries[self.cursor].sndMove ~= nil then
             self.entries[self.cursor].sndMove:stop()
@@ -247,21 +253,29 @@ function menuengine.new(x, y, font, space)
 
             if not self.mouseDisabled then
 
-                for i=1,#self.entries do
+                for i = 1, #self.entries do
                     -- React on Cursor-Position, which needs to collect the Length of every Text-Elements like "normalSelectedBegin", "normalSelectedEnd" etc... TODO: Better readable, please?^^
-                    if not self.entries[i].disabled and menuengine.mouse_y > self.entries[i].y and menuengine.mouse_y < self.entries[i].y + self.space and #self.entries[i].text > 0 and
-                      menuengine.mouse_x > self.entries[i].x and menuengine.mouse_x < self.entries[i].x + self.entries[i].font:getWidth(self.entries[i].text..self.normalSelectedBegin..self.normalSelectedEnd..self.symbolSelectedEnd) then
+                    if not self.entries[i].disabled and menuengine.mouse_y >
+                        self.entries[i].y and menuengine.mouse_y <
+                        self.entries[i].y + self.space and #self.entries[i].text >
+                        0 and menuengine.mouse_x > self.entries[i].x and
+                        menuengine.mouse_x < self.entries[i].x +
+                        self.entries[i].font:getWidth(
+                            self.entries[i].text .. self.normalSelectedBegin ..
+                                self.normalSelectedEnd .. self.symbolSelectedEnd) then
                         if self.cursor ~= i then
                             self.cursor = i
-                            if not self.entries[i].disabled and self.entries[i].sndMove ~= nil then
+                            if not self.entries[i].disabled and
+                                self.entries[i].sndMove ~= nil then
                                 self.entries[i].sndMove:stop()
                                 self.entries[i].sndMove:play()
                             end
                         end
-                        if not self.entries[i].disabled and love.mouse.isDown(1) and not menuengine.clicked then
+                        if not self.entries[i].disabled and love.mouse.isDown(1) and
+                            not menuengine.clicked then
                             self:_finish()
                             menuengine.clicked = true
-                        -- prevents Clicking every Frame
+                            -- prevents Clicking every Frame
                         elseif not love.mouse.isDown(1) then
                             menuengine.clicked = false
                         end
@@ -281,7 +295,7 @@ function menuengine.new(x, y, font, space)
                 self.entries[self.cursor].sndSuccess:stop()
                 self.entries[self.cursor].sndSuccess:play()
             end
-              -- WARNING: Deprecrated
+            -- WARNING: Deprecrated
             if self.target ~= nil then
                 self.target(self.cursor, self.entries[self.cursor].args)
             end
@@ -290,17 +304,13 @@ function menuengine.new(x, y, font, space)
 
     function self:setSndMove(snd)
         local i
-        for i=1,#self.entries do
-            self.entries[i].sndMove = snd
-        end
+        for i = 1, #self.entries do self.entries[i].sndMove = snd end
         self.sndMove = snd
     end
 
     function self:setSndSuccess(snd)
         local i
-        for i=1,#self.entries do
-            self.entries[i].sndSuccess = snd
-        end
+        for i = 1, #self.entries do self.entries[i].sndSuccess = snd end
         self.sndSuccess = snd
     end
 
@@ -311,12 +321,11 @@ function menuengine.new(x, y, font, space)
 
 end
 
-
 -- Need to check Inputs
 function menuengine.keypressed(scancode)
     local k, _, i
     for k, _ in pairs(KEY) do
-        for i=1,#KEY[k].scancodes do
+        for i = 1, #KEY[k].scancodes do
             if scancode == KEY[k].scancodes[i] then
                 KEY[k].pressed = true
             end
@@ -324,93 +333,66 @@ function menuengine.keypressed(scancode)
     end
 end
 
-
 -- Need to check Mouse-Inputs
 function menuengine.mousemoved(x, y)
     menuengine.mouse_x = x
     menuengine.mouse_y = y
 end
 
-
 -- Draw every Menu
 function menuengine.draw()
     local i
-    for i=1,#menus do
-        menus[i]:draw()
-    end
+    for i = 1, #menus do menus[i]:draw() end
 end
 
 -- Updates every Menu
 function menuengine.update()
     local i
-    for i=1,#menus do
-        menus[i]:update()
-    end
+    for i = 1, #menus do menus[i]:update() end
 end
-
 
 -- Disable EVERY Menu
 function menuengine.disable()
     local i
-    for i=1,#menus do
-        menus[i]:setDisabled(true)
-    end
+    for i = 1, #menus do menus[i]:setDisabled(true) end
 end
-
 
 -- Enable EVERY Menu
 function menuengine.enable()
     local i
-    for i=1,#menus do
-        menus[i]:setDisabled(false)
-    end
+    for i = 1, #menus do menus[i]:setDisabled(false) end
 end
 
 -- TODO: Everything after that is not documented yet, I don't know if they are necessary. Maybe they will be removed...
 
-
 -- Set Font for EVERY Menu
 function menuengine.setFont(font, space)
     local i
-    for i=1,#menus do
-        menus[i]:setFont(font, space)
-    end
+    for i = 1, #menus do menus[i]:setFont(font, space) end
 end
-
 
 -- Set Space for EVERY Menu
 function menuengine.setSpace(space)
     local i
-    for i=1,#menus do
-        menus[i]:setSpace(space)
-    end
+    for i = 1, #menus do menus[i]:setSpace(space) end
 end
-
 
 -- Add Entry on EVERY Menu (why should anyone use this?)
 function menuengine.addEntry(entry, func)
     local i
-    for i=1,#menus do
-        menus[i]:addEntry(entry, func)
-    end
+    for i = 1, #menus do menus[i]:addEntry(entry, func) end
 end
-
 
 -- Enable Mouse for EVERY Menu
 function menuengine.mouseEnable()
     local i
-    for i=1,#menus do
-        menus[i]:mouseEnable()
-    end
+    for i = 1, #menus do menus[i]:mouseEnable() end
 end
-
 
 -- Disable Mouse for EVERY Menu
 function menuengine.mouseDisable()
     local i
-    for i=1,#menus do
-        menus[i]:mouseDisable()
-    end
+    for i = 1, #menus do menus[i]:mouseDisable() end
 end
 
 return menuengine

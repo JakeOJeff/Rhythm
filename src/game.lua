@@ -3,12 +3,16 @@ lg = love.graphics
 
 -- Require Files
 
-themes = require 'src.tools.themes'
+themes = require 'src.themes'
+songlist = require 'src.songs'
 shack = require 'src.libs.shack'
+trail = require 'src.tools.trail'
+util = require 'src.tools.util'
 
 require 'src.classes.hsl'
 require 'src.classes.particle'
 require 'src.classes.tile'
+
 
 local settings = require 'src.settings'
 textAnim = require 'src.libs.text'
@@ -39,7 +43,6 @@ function game:load()
     dia2X = diaposX + diaDis + diaDis / 4
     dia3X = diaposX + diaDis * 2 + diaDis / 4
     dia4X = diaposX + diaDis * 3 + diaDis / 4
-    tilImg = nil
 
     -- Statistics loading
     misses = 0
@@ -69,8 +72,10 @@ function game:load()
 
     -- Font/Text
     animDelay = 2
-    fontSize = 25
+    fontSize = 30
     font = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize)
+    fontSize2 = 15
+    font2 = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize2)
     love.graphics.setFont(font)
 
     -- Background Hue
@@ -94,6 +99,24 @@ function game:load()
     -- Time generation delay
     timeDatas = {0.3, 0.28, 0.28, 0.4, 0.34, 0.46, 0.2, 0.3}
     currentTimeData = 1
+
+    -- Load Song
+    if selectedSong <= maxPreBuiltSongs then
+        soundData = love.sound.newSoundData("assets/audio/"..songlist[selectedSong].audio..".mp3")
+	    sound = love.audio.newSource(soundData)
+    else
+        soundData = love.sound.newSoundData("Audios/"..songlist[selectedSong].audio..".mp3")
+        sound = love.audio.newSource(soundData, "static")
+    end
+	sound:play()
+    sound:setLooping(true)
+    songduration = sound:getDuration("seconds")
+    songcurrentTime = sound:tell("seconds")
+     songtimeLeft = songduration - songcurrentTime
+
+     songminutesLeft = math.floor(songtimeLeft / 60)
+     songsecondsLeft = math.floor(songtimeLeft % 60)
+
 end
 
 function game:update(dt)
@@ -138,134 +161,7 @@ function game:update(dt)
         bgX = -(background:getWidth() - sWidth) -- Reset position if it went too far to the left
         bgDirection = 1 -- Change direction to right
     end
-
-    if state == "active" then
-        tileTimer = tileTimer - (1 * dt)
-        if tileTimer < 0 and #tiles < 17 then
-            --[[if currentTimeData < #timeDatas then
-                currentTimeData = currentTimeData + 1
-            else
-                currentTimeData = 1
-            end]]
-            local option = math.random(1, 10)
-            if option == 1 and currentlevel == 2 then ---- OPTION 1
-                for i = 1, 2 do
-                    randomTile = math.random(1, 32)
-
-                    tile = {
-                        x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                            diaDis / 4,
-                        y = 800,
-                        img = tile1
-                    }
-                    table.insert(tiles, tile)
-                end
-                tileTimer = tileTimerCons
-
-            elseif option == 5 and currentlevel == 3 then
-                for i = 1, 3 do
-                    randomTile = math.random(1, 32)
-
-                    tile = {
-                        x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                            diaDis / 4,
-                        y = 800,
-                        img = tile1
-                    }
-                    table.insert(tiles, tile)
-                end
-                tileTimer = tileTimerCons
-            else ---- OPTION 2
-                randomTile = math.random(1, 32)
-                tile = {
-                    x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                        diaDis / 4,
-                    y = 800,
-                    img = tile1
-                }
-                table.insert(tiles, tile)
-                tileTimer = tileTimerCons
-            end
-        end
-    end
-
-    -- Checking if player has hit the button while the tile has been hovered over it
-    for i, tile in ipairs(tiles) do
-        tile.y = tile.y - (tileSpeed * dt)
-        if tile.x == dia1X and d1() then
-            tilepos(tile, i)
-        elseif tile.x == dia2X and d2() then
-            tilepos(tile, i)
-        elseif tile.x == dia3X and d3() then
-            tilepos(tile, i)
-        elseif tile.x == dia4X and d4() then
-            tilepos(tile, i)
-        elseif tile.y < 15 and tile.y > 0 then
-            if effects ~= "OFF" then
-                for _ = 1, 100 do
-                    local particle = Particle:new(tile.x + dia:getWidth() / 2,
-                                                  tile.y + 25)
-                    particle.color = {1, 1, 1}
-                    particle.size = math.random(1, 5)
-                    table.insert(particles, particle)
-                end
-            end
-        elseif tile.y < 0 then
-            table.remove(tiles, i)
-            misses = misses + 1
-            combo = 0
-        end
-    end
-
-    -- ==========================================================
-
-    -- Bringing out alpha values
-    if d1() then
-        alp1 = 0.5
-        inst = 0
-    elseif d2() then
-        alp2 = 0.5
-        inst = 0
-    elseif d3() then
-        alp3 = 0.5
-        inst = 0
-    elseif d4() then
-        alp4 = 0.5
-        inst = 0
-    end
-
-    -- =======================================
-
-    -- Change back to normal
-    if alp1 < 1 and not d1() then
-        delay = delay - 1 * dt
-        if delay <= 0 then
-            alp1 = 1
-            inst = 1
-            delay = maxDelay
-        end
-    elseif alp2 < 1 and not d2() then
-        delay = delay - 1 * dt
-        if delay <= 0 then
-            alp2 = 1
-            inst = 1
-            delay = maxDelay
-        end
-    elseif alp3 < 1 and not d3() then
-        delay = delay - 1 * dt
-        if delay <= 0 then
-            alp3 = 1
-            inst = 1
-            delay = maxDelay
-        end
-    elseif alp4 < 1 and not d4() then
-        delay = delay - 1 * dt
-        if delay <= 0 then
-            alp4 = 1
-            inst = 1
-            delay = maxDelay
-        end
-    end
+    tileupdate(dt)
 
     -- ============================================== 
 
@@ -283,26 +179,40 @@ function game:update(dt)
                 currentlevel = 3
             end
         end
+
+        if key == "t" then
+            if selectedTheme < 3 then
+                selectedTheme = selectedTheme + 1
+            else
+                selectedTheme = 1
+            end
+        end
         if key == "escape" then
             print(visualizer)
             saveGame()
             love.event.quit("restart")
         end
     end
+    songduration = sound:getDuration("seconds")
+    songcurrentTime = sound:tell("seconds")
+    songtimeLeft = songduration - songcurrentTime
+
+    songminutesLeft = math.floor(songtimeLeft / 60)
+    songsecondsLeft = math.floor(songtimeLeft % 60)
 end
 
 function game:draw()
-    lg.setBackgroundColor(HSL(rainH / 255, rainS, rainL))
     lg.setColor(1, 1, 1)
-    lg.draw(background, bgX, -200)
-
-    lg.setColor(1, 1, 1, alp1)
+    lg.draw(background, bgX, 0)
+    lg.setColor(themes[selectedTheme].color)
+    spectrum.draw()
+    lg.setColor(235/255, 64/255, 52/255, alp1)
     lg.draw(dia, dia1X, 20)
-    lg.setColor(1, 1, 1, alp2)
+    lg.setColor(235/255, 171/255, 52/255, alp2)
     lg.draw(dia, dia2X, 20)
-    lg.setColor(1, 1, 1, alp3)
+    lg.setColor(232/255, 235/255, 52/255, alp3)
     lg.draw(dia, dia3X, 20)
-    lg.setColor(1, 1, 1, alp4)
+    lg.setColor(104/255, 235/255, 52/255, alp4)
     lg.draw(dia, dia4X, 20)
 
     lg.setColor(1, 1, 1)
@@ -316,22 +226,32 @@ function game:draw()
     lg.rectangle("fill", 0, 25 + dia:getHeight(), lg.getWidth(), 5)
 
 
-    lg.setColor(1, 1, 1)
-    spectrum.draw()
 
+
+    lg.setColor(HSL(rainH / 255, rainS, rainL, 0.3))
+
+    -- If you're wondering why i didn't just do bgThemeColor = themes[selectTheme].color, it is because it changes the value of the themes.color entirely instead of just a small bit
+    bgThemeColor = {}
+    for i = 1, #themes[selectedTheme].color do
+        table.insert(bgThemeColor, themes[selectedTheme].color[i])
+    end
+    table.insert(bgThemeColor, 0.1) -- Alpha value for the theme color
+    lg.setColor(bgThemeColor)
+    lg.rectangle("fill", 0, lg.getHeight() - 80, lg.getWidth(), 60 )
+
+    lg.setColor(1, 1, 1)
     lg.print(
-        "Connected to user Spotify[~x~] | Level : " .. currentlevel .. " " ..
-            return_shack(), 10, lg.getHeight() - 100)
-
-    lg.print(score .. " points | " .. statText .. " | " .. misses ..
-                 " misses | " .. " COMBO x" .. combo .. "\n @JakeOJeff 2022 " ..
-                 tileSpeed, 10, lg.getHeight() - 70)
-    lg.setColor(1, 1, 1)
+        "COMBO x" .. combo ..
+        " | Points "..score ..
+        " | Misses "..misses, 10, lg.getHeight() - 75)
+    lg.setFont(font2)
+    lg.print(songlist[selectedSong].name.. " - "..songlist[selectedSong].artist.. " "..songminutesLeft..":"..songsecondsLeft, 10, lg.getHeight()-40)
     if effects ~= "OFF" then
         for _, particle in ipairs(particles) do particle:draw() end
     end
-    textAnim:draw()
+    lg.setFont(font)
 
+    textAnim:draw()
     shack:apply()
 end
 
@@ -342,6 +262,9 @@ function game:wheelmoved(x, y)
     elseif y < 0 then
         if tileSpeedMax > 10 then tileSpeedMax = tileSpeedMax - 10 end
     end
+end
+
+function game:mousemoved( x, y, dx, dy, istouch )
 end
 -- =========================
 
@@ -362,8 +285,10 @@ function saveGame()
     data.score = score
     data.combo = combo
     data.theme = selectedTheme
+    data.song = selectedSong
     data.visualizer = visualizer
     data.effects = effects
+    data.mode = mode 
 
     data.currentlevel = currentlevel
     
