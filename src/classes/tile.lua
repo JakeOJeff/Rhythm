@@ -91,56 +91,7 @@ function tileOutOfBounds(val)
 end
 end
 function tileupdate(dt)
-    if state == "active" then
-        tileTimer = tileTimer - (1 * dt)
-        if tileTimer < 0 and #tiles < 17 then
-            --[[if currentTimeData < #timeDatas then
-                currentTimeData = currentTimeData + 1
-            else
-                currentTimeData = 1
-            end]]
-            local option = math.random(1, 10)
-            if option == 1 and currentlevel == 2 then ---- OPTION 1
-                for i = 1, 2 do
-                    randomTile = math.random(1, 32)
-
-                    tile = {
-                        x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                            diaDis / 4,
-                        y = 800,
-                        img = tile1
-                    }
-                    table.insert(tiles, tile)
-                end
-                tileTimer = tileTimerCons
-
-            elseif option == 5 and currentlevel == 3 then
-                for i = 1, 3 do
-                    randomTile = math.random(1, 32)
-
-                    tile = {
-                        x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                            diaDis / 4,
-                        y = 800,
-                        img = tile1
-                    }
-                    table.insert(tiles, tile)
-                end
-                tileTimer = tileTimerCons
-            else
-                randomTile = math.random(1, 32)
-                tile = {
-                    x = diaposX + (math.ceil(randomTile / 8) * 100) - 100 +
-                        diaDis / 4,
-                    y = 800,
-                    img = tile1
-                }
-                table.insert(tiles, tile)
-                tileTimer = tileTimerCons
-            end
-        end
-    end
-
+    create_tiles(dt)
     -- Checking if player has hit the button while the tile has been hovered over it
     for i, tile in ipairs(tiles) do
         tile.y = tile.y - (tileSpeed * dt)

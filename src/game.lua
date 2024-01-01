@@ -101,6 +101,8 @@ function game:load()
     currentTimeData = 1
 
     -- Load Song
+    if mode == "MUSIC" then
+
     if selectedSong <= maxPreBuiltSongs then
         soundData = love.sound.newSoundData("assets/audio/"..songlist[selectedSong].audio..".mp3")
 	    sound = love.audio.newSource(soundData)
@@ -108,21 +110,50 @@ function game:load()
         soundData = love.sound.newSoundData("Audios/"..songlist[selectedSong].audio..".mp3")
         sound = love.audio.newSource(soundData, "static")
     end
-	sound:play()
-    sound:setLooping(true)
+
     songduration = sound:getDuration("seconds")
     songcurrentTime = sound:tell("seconds")
      songtimeLeft = songduration - songcurrentTime
-
      songminutesLeft = math.floor(songtimeLeft / 60)
      songsecondsLeft = math.floor(songtimeLeft % 60)
+    
+else
+    songtimeLeft = 0
+    songminutesLeft = 0
+    songsecondsLeft = 0
 
+end
+        -- Image initialization
+        dia = loadTheme("buton.png")
+        tile1 = loadTheme("buton2.png")
+        background = loadTheme("background.jpg")
+    startSong = 1.5 -- Seconds to start song
 end
 
 function game:update(dt)
+
+    if mode == "MUSIC" then
+    if startSong > 0 then
+        startSong = startSong - 1 * dt
+    else
+        startSong = 0
+    end
+    if startSong == 0 then
+        sound:play()
+        sound:setLooping(true)
+    end
+end
     -- tileTimerCons = timeDatas[currentTimeData]
     -- print(tileTimerCons)
 
+    if mode == "MUSIC" then
+        songduration = sound:getDuration("seconds")
+        songcurrentTime = sound:tell("seconds")
+         songtimeLeft = songduration - songcurrentTime
+         songminutesLeft = math.floor(songtimeLeft / 60)
+         songsecondsLeft = math.floor(songtimeLeft % 60)
+    end
+    collectgarbage("collect")
     textAnim:update(dt)
     shack:update(dt)
     if visualizer ~= "OFF" then spectrum.update(dt) end
@@ -193,12 +224,7 @@ function game:update(dt)
             love.event.quit("restart")
         end
     end
-    songduration = sound:getDuration("seconds")
-    songcurrentTime = sound:tell("seconds")
-    songtimeLeft = songduration - songcurrentTime
 
-    songminutesLeft = math.floor(songtimeLeft / 60)
-    songsecondsLeft = math.floor(songtimeLeft % 60)
 end
 
 function game:draw()
@@ -244,8 +270,15 @@ function game:draw()
         "COMBO x" .. combo ..
         " | Points "..score ..
         " | Misses "..misses, 10, lg.getHeight() - 75)
+
+    if mode == "MUSIC" then
+        lg.setColor(themes[selectedTheme].color)
+
+        lg.rectangle("fill", 0, lg.getHeight() - 80, songcurrentTime/songduration * lg.getWidth(), 5 )
+    lg.setColor(1,1,1)
     lg.setFont(font2)
     lg.print(songlist[selectedSong].name.. " - "..songlist[selectedSong].artist.. " "..songminutesLeft..":"..songsecondsLeft, 10, lg.getHeight()-40)
+    end
     if effects ~= "OFF" then
         for _, particle in ipairs(particles) do particle:draw() end
     end
@@ -297,10 +330,7 @@ function saveGame()
     -- The filetype actually doesn't matter, and can even be omitted.
     love.filesystem.write("savedata.txt", serialized)
 
-        -- Image initialization
-        dia = loadTheme("buton.png")
-        tile1 = loadTheme("buton2.png")
-        background = loadTheme("background.jpg")
+
 end
 
 function loadTheme(item)

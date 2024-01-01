@@ -13,6 +13,7 @@ menuengine.settings = {
     normalSelectedBegin = "",
     normalSelectedEnd = "",
     status = "This does something",
+    scissor = {},
     sndMove = nil,
     sndSuccess = nil,
     mouseDisabled = false
@@ -55,6 +56,7 @@ function menuengine.new(x, y, font, space)
     self.colorSelected = menuengine.settings.colorSelected
     self.colorNormal = menuengine.settings.colorNormal
     self.status = menuengine.settings.status
+    self.scissor = menuengine.settings.scissor
     self.symbolSelectedBegin = menuengine.settings.symbolSelectedBegin
     self.symbolSelectedEnd = menuengine.settings.symbolSelectedEnd
     self.normalSelectedBegin = menuengine.settings.normalSelectedBegin
@@ -165,12 +167,16 @@ function menuengine.new(x, y, font, space)
                                         self.entries[i].x, self.entries[i].y)
 
                     love.graphics.setColor(0.9, 0.5, 0.4)
+
                     love.graphics.setFont(self.font)
                     love.graphics.printf(self.entries[i].status,
                                          self.entries[i].x,
                                          love.graphics.getHeight() - 100,
                                          love.graphics.getWidth() - 20)
-
+                                         --love.graphics.push()
+                                         --sc = self.scissor
+                                         --love.graphics.setScissor(sc[1],sc[2],sc[3],sc[4])
+                                         --love.graphics.pop()
                 else
                     love.graphics.setColor(self.entries[i].colorNormal)
                     love.graphics.print(self.entries[i].normalSelectedBegin ..
@@ -205,6 +211,10 @@ function menuengine.new(x, y, font, space)
 
     -- Disable Mouse
     function self:mouseDisable() self.mouseDisabled = true end
+
+    function self:setScissor(table)
+        self.scissor = table
+    end
 
     function self:setColorNormal(color)
         local i

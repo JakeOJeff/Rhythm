@@ -76,18 +76,28 @@ local function difficulty()
     end
 end
 local function visuals()
-    if visualizer == "OFF" then
-        visualizer = "ON"
+    if mode == "MUSIC" then
+        if visualizer == "OFF" then
+            visualizer = "ON"
+        else
+            visualizer = "OFF"
+        end
     else
         visualizer = "OFF"
     end
+
     print(visualizer)
+end
+local function Tutorial()
+    love.system.openURL("https://wix.com")
 end
 local function switchmode()
     if mode == "MUSIC" then
         mode = "DESKTOP"
+        visualizer = "OFF"
     else
         mode = "MUSIC"
+        visualizer = "ON"
     end
 end
 
@@ -109,7 +119,7 @@ end
 local function garbageCollect() collectgarbage("collect") end
 
 local function garbageCount()
-    return cmath.round((collectgarbage("count") / 1024), 2) .. " mb"
+    return cmath.round((collectgarbage("count"))/(10 * 24), 2) .. " mb"
 end
 local function theme()
     if selectedTheme < #themes then
@@ -184,7 +194,7 @@ function menu:load()
     settings:addEntry("Mode : " .. mode, switchmode, args, font, {.8, .8, .8}) -- 6
     settings:addEntry("Memory Usage : " .. garbageCount(), garbageCollect, args,
                       font, {1, 1, 1}) -- 7
-    settings:addEntry("System Tray ", writeSystemReport, args, font,
+    settings:addEntry("Tutorial ", Tutorial, args, font,
                       {.8, .8, .8}) -- 8
     settings:addSep()
     settings:addEntry("SAVE", saveToMenu, args, font, colorNormal, {0, 1, 0})
@@ -206,15 +216,16 @@ function menu:load()
         end
         songmenu:addEntry(songlist[i].name, selectSong, args, font, colorNormal,
                           colorSelected, songlist[i].artist)
+                          songmenu:setScissor({0,0, 400, 400})
     end
 
     stats = menuengine.new(10, 20)
     stats:addEntry("Career Score : " .. (careerscore or " "), func, args, font,
-                   {1,1,1}, {0.5, 0.5, 0.5})
-    stats:addEntry("Combo : " .. (combo or " "), func, args, font,  {1,1,1},
+                   {1, 1, 1}, {0.5, 0.5, 0.5})
+    stats:addEntry("Combo : " .. (combo or " "), func, args, font, {1, 1, 1},
                    {0.5, 0.5, 0.5})
     stats:addEntry("Career Combo : " .. (careercombo or " "), func, args, font,
-    {1,1,1}, {0.5, 0.5, 0.5})
+                   {1, 1, 1}, {0.5, 0.5, 0.5})
     stats:addSep()
     stats:addEntry("MENU", menu_main)
     for i = 1, #stats.entries - 1 do
@@ -358,9 +369,7 @@ end
 function menu:wheelmoved(x, y)
     if not songmenu.disabled then
         if y > 0 then
-            if smY < 20 then
-            smY = smY + 10
-        end
+            if smY < 20 then smY = smY + 10 end
 
         elseif y < 0 then
             smY = smY - 10
