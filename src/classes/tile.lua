@@ -15,9 +15,8 @@ function tilepos(tile, i)
         table.remove(tiles, i)
         fontSize = 40
         score = score + 1
-        careerscore = careerscore + 1
         combo = combo + 1
-        careercombo = careercombo + 1
+        careerscore = careerscore + 1
         shack:shake(1)
         prepareEffect()
 
@@ -36,7 +35,6 @@ function tilepos(tile, i)
         careerscore = careerscore + 100
         shack:shake(500)
         combo = combo + 1
-        careercombo = careercombo + 1
         fontSize = 40
 
         if effects ~= "OFF" then
@@ -54,7 +52,6 @@ function tilepos(tile, i)
         score = score + 50
         shack:shake(100)
         combo = combo + 1
-        careercombo = careercombo + 1
         careerscore = careerscore + 50
         fontSize = 40
         if effects ~= "OFF" then
@@ -77,7 +74,8 @@ function tileOutOfBounds(val)
         table.remove(tiles, i)
         fontSize = 40
         score = score - 2
-        combo = 0
+
+            combo = 0
         if effects ~= "OFF" then
             for _ = 1, 100 do
                 local particle = Particle:new(tile.x + dia:getWidth() / 2,
