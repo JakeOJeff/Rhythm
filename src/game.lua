@@ -12,7 +12,7 @@ util = require 'src.tools.util'
 require 'src.classes.hsl'
 require 'src.classes.particle'
 require 'src.classes.tile'
-
+require 'src.endgame'
 
 local settings = require 'src.settings'
 textAnim = require 'src.libs.text'
@@ -54,6 +54,7 @@ function game:load()
     tileTimerCons = 0.32
     tileTimer = tileTimerCons
     combo = 0
+    
 
     -- Button alpha values
     alp1 = 1
@@ -103,55 +104,67 @@ function game:load()
     -- Load Song
     if mode == "MUSIC" then
 
-    if selectedSong <= maxPreBuiltSongs then
-        soundData = love.sound.newSoundData("assets/audio/"..songlist[selectedSong].audio..".mp3")
-	    sound = love.audio.newSource(soundData)
+        if selectedSong <= maxPreBuiltSongs then
+            soundData = love.sound.newSoundData("assets/audio/" ..
+                                                    songlist[selectedSong].audio ..
+                                                    ".mp3")
+            sound = love.audio.newSource(soundData)
+        else
+            soundData = love.sound.newSoundData("Audios/" ..
+                                                    songlist[selectedSong].audio ..
+                                                    ".mp3")
+            sound = love.audio.newSource(soundData, "static")
+        end
+
+        songduration = sound:getDuration("seconds")
+        songcurrentTime = sound:tell("seconds")
+        songtimeLeft = songduration - songcurrentTime
+        songminutesLeft = math.floor(songtimeLeft / 60)
+        songsecondsLeft = math.floor(songtimeLeft % 60)
+
+
     else
-        soundData = love.sound.newSoundData("Audios/"..songlist[selectedSong].audio..".mp3")
-        sound = love.audio.newSource(soundData, "static")
+        songtimeLeft = 0
+        songminutesLeft = 0
+        songsecondsLeft = 0
+
     end
 
-    songduration = sound:getDuration("seconds")
-    songcurrentTime = sound:tell("seconds")
-     songtimeLeft = songduration - songcurrentTime
-     songminutesLeft = math.floor(songtimeLeft / 60)
-     songsecondsLeft = math.floor(songtimeLeft % 60)
-    
-else
-    songtimeLeft = 0
-    songminutesLeft = 0
-    songsecondsLeft = 0
-
-end
-        -- Image initialization
-        dia = loadTheme("buton.png")
-        tile1 = loadTheme("buton2.png")
-        background = loadTheme("background.jpg")
+    -- Image initialization
+    dia = loadTheme("buton.png")
+    tile1 = loadTheme("buton2.png")
+    background = loadTheme("background.jpg")
     startSong = 1.5 -- Seconds to start song
+    songdone = false
+
 end
 
 function game:update(dt)
 
     if mode == "MUSIC" then
-    if startSong > 0 then
-        startSong = startSong - 1 * dt
-    else
-        startSong = 0
+        if startSong > 0 then
+            startSong = startSong - 1 * dt
+        else
+            startSong = 0
+        end
+        if startSong == 0 then
+            sound:play()
+            sound:setLooping(true)
+        end
     end
-    if startSong == 0 then
-        sound:play()
-        sound:setLooping(true)
+    if combo > careercombo then
+        careercombo = combo
+        saveGame()
     end
-end
     -- tileTimerCons = timeDatas[currentTimeData]
     -- print(tileTimerCons)
 
     if mode == "MUSIC" then
         songduration = sound:getDuration("seconds")
         songcurrentTime = sound:tell("seconds")
-         songtimeLeft = songduration - songcurrentTime
-         songminutesLeft = math.floor(songtimeLeft / 60)
-         songsecondsLeft = math.floor(songtimeLeft % 60)
+        songtimeLeft = songduration - songcurrentTime
+        songminutesLeft = math.floor(songtimeLeft / 60)
+        songsecondsLeft = math.floor(songtimeLeft % 60)
     end
     collectgarbage("collect")
     textAnim:update(dt)
@@ -220,11 +233,17 @@ end
         end
         if key == "escape" then
             print(visualizer)
+            score = 0
+
             saveGame()
             love.event.quit("restart")
         end
     end
 
+    if songtimeLeft <= 0.3 then
+        songdone = true
+        game.setScene("endgame")
+    end
 end
 
 function game:draw()
@@ -232,13 +251,13 @@ function game:draw()
     lg.draw(background, bgX, 0)
     lg.setColor(themes[selectedTheme].color)
     spectrum.draw()
-    lg.setColor(235/255, 64/255, 52/255, alp1)
+    lg.setColor(235 / 255, 64 / 255, 52 / 255, alp1)
     lg.draw(dia, dia1X, 20)
-    lg.setColor(235/255, 171/255, 52/255, alp2)
+    lg.setColor(235 / 255, 171 / 255, 52 / 255, alp2)
     lg.draw(dia, dia2X, 20)
-    lg.setColor(232/255, 235/255, 52/255, alp3)
+    lg.setColor(232 / 255, 235 / 255, 52 / 255, alp3)
     lg.draw(dia, dia3X, 20)
-    lg.setColor(104/255, 235/255, 52/255, alp4)
+    lg.setColor(104 / 255, 235 / 255, 52 / 255, alp4)
     lg.draw(dia, dia4X, 20)
 
     lg.setColor(1, 1, 1)
@@ -251,9 +270,6 @@ function game:draw()
     lg.rectangle("fill", 0, 10, lg.getWidth(), 5)
     lg.rectangle("fill", 0, 25 + dia:getHeight(), lg.getWidth(), 5)
 
-
-
-
     lg.setColor(HSL(rainH / 255, rainS, rainL, 0.3))
 
     -- If you're wondering why i didn't just do bgThemeColor = themes[selectTheme].color, it is because it changes the value of the themes.color entirely instead of just a small bit
@@ -263,21 +279,22 @@ function game:draw()
     end
     table.insert(bgThemeColor, 0.1) -- Alpha value for the theme color
     lg.setColor(bgThemeColor)
-    lg.rectangle("fill", 0, lg.getHeight() - 80, lg.getWidth(), 60 )
+    lg.rectangle("fill", 0, lg.getHeight() - 80, lg.getWidth(), 60)
 
     lg.setColor(1, 1, 1)
-    lg.print(
-        "COMBO x" .. combo ..
-        " | Points "..score ..
-        " | Misses "..misses, 10, lg.getHeight() - 75)
+    lg.print("COMBO x" .. combo .. " | Points " .. score .. " | Misses " ..
+                 misses, 10, lg.getHeight() - 75)
 
     if mode == "MUSIC" then
         lg.setColor(themes[selectedTheme].color)
 
-        lg.rectangle("fill", 0, lg.getHeight() - 80, songcurrentTime/songduration * lg.getWidth(), 5 )
-    lg.setColor(1,1,1)
-    lg.setFont(font2)
-    lg.print(songlist[selectedSong].name.. " - "..songlist[selectedSong].artist.. " "..songminutesLeft..":"..songsecondsLeft, 10, lg.getHeight()-40)
+        lg.rectangle("fill", 0, lg.getHeight() - 80,
+                     songcurrentTime / songduration * lg.getWidth(), 5)
+        lg.setColor(1, 1, 1)
+        lg.setFont(font2)
+        lg.print(songlist[selectedSong].name .. " - " ..
+                     songlist[selectedSong].artist .. " " .. songminutesLeft ..
+                     ":" .. songsecondsLeft, 10, lg.getHeight() - 40)
     end
     if effects ~= "OFF" then
         for _, particle in ipairs(particles) do particle:draw() end
@@ -297,8 +314,7 @@ function game:wheelmoved(x, y)
     end
 end
 
-function game:mousemoved( x, y, dx, dy, istouch )
-end
+function game:mousemoved(x, y, dx, dy, istouch) end
 -- =========================
 
 function saveGame()
@@ -321,15 +337,13 @@ function saveGame()
     data.song = selectedSong
     data.visualizer = visualizer
     data.effects = effects
-    data.mode = mode 
+    data.mode = mode
 
     data.currentlevel = currentlevel
-    
 
     serialized = lume.serialize(data)
     -- The filetype actually doesn't matter, and can even be omitted.
     love.filesystem.write("savedata.txt", serialized)
-
 
 end
 
