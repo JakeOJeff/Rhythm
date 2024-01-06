@@ -7,6 +7,7 @@ local sett = require 'src.settings'
 local cmath = require 'src.tools.maths'
 local statuses = require 'src.tools.menustatus'
 
+require "src.classes.imageButton"
 fontSize = 30
 -- GOOD FONTS
 -- Gymnastik.otf
@@ -23,9 +24,13 @@ local mainmenu, play, settings, theme, song, visuals, effectgraphics, stats,
 local smX = 10
 local smY = 20
 local difficulty, switchTheme
+local muted = false
 
 local menubg = love.graphics.newImage("assets/menubg.png")
 menubg:setWrap('repeat', 'clampzero')
+
+local muteIco = love.graphics.newImage("assets/icons/mute.png")
+local unmuteIco = love.graphics.newImage("assets/icons/unmute.png")
 -- Functions to change Mode
 local function menu_main()
     menuengine.disable() -- Disable every Menu...
@@ -167,7 +172,6 @@ function menu:load()
     visualizer = data.visualizer or "ON"
     effects = data.effects or "ON"
     mode = data.mode or "MUSIC"
-
     currentlevel = data.currentlevel or 1
 
     spectrum = require 'src.classes.spectrum'
@@ -224,7 +228,7 @@ function menu:load()
                    {1, 1, 1}, {0.5, 0.5, 0.5})
     stats:addEntry("Combo : " .. (combo or " "), func, args, font, {1, 1, 1},
                    {0.5, 0.5, 0.5})
-    stats:addEntry("Career Combo : " .. (careercombo or " "), func, args, font,
+    stats:addEntry("Highest Combo : " .. (careercombo or " "), func, args, font,
                    {1, 1, 1}, {0.5, 0.5, 0.5})
     stats:addSep()
     stats:addEntry("MENU", menu_main)
@@ -234,6 +238,14 @@ function menu:load()
     end
     stats:setStatus(statuses[3])
     -- Disable Every Menu, then activate Mainmenu
+    muteButton = imgbutton:new(love.graphics.getWidth() - muteIco:getWidth() - 10,love.graphics.getHeight() - muteIco:getHeight() - 10, muteIco, unmuteIco, function()
+    if muted then
+        muted = false
+    else
+        muted = true
+    end
+end
+    )
     menuengine.disable()
     mainmenu:setDisabled(false)
     saveGame()
@@ -271,6 +283,7 @@ function menu:draw()
                                         2 + 35, 35 * 3)
         end
     end
+    draw_imgbuttons()
     menuengine.draw()
     if effects == "ON" then
         -- trail:draw()
@@ -316,6 +329,15 @@ function menu:update(dt)
         songmenu.entries[i].colorNormal = colorNormal
     end
     menuengine.update()
+
+    update_imgbuttons()
+    -- MUTING
+    if muted then
+        sd:stop()
+    else
+        sd:play()
+        sd:setLooping(true)
+    end
 end
 
 function menu:keypressed(key, scancode, isrepeat)
@@ -361,7 +383,9 @@ function menu:keypressed(key, scancode, isrepeat)
         end
     end
 end
-
+function menu:mousepressed(x, y, button)
+    muteButton:mousepressed(x, y, button)
+end
 function menu:mousemoved(x, y, dx, dy, istouch)
     menuengine.mousemoved(x, y)
     trail:mousemoved(x, y, dx, dy, istouch)
