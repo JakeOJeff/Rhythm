@@ -1,1 +1,7 @@
-Fix COMBO system, make it better
+Fix COMBO system, make it better - Done 06/01/24
+Advanced Display Settings
+Make tutorial Page
+Add custom themes option
+volume slider
+Remove 't' to change theme option
+ pause, restart, and go home while playing
