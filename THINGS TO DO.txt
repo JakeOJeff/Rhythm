@@ -1,7 +1,10 @@
 Fix COMBO system, make it better - Done 06/01/24
+Fix Menu Music Mute System - Done 11/01/2024
+Added Replay and Menu - Done 11/01/2024
+Fix Replay menuengine
 Advanced Display Settings
 Make tutorial Page
 Add custom themes option
 volume slider
 Remove 't' to change theme option
- pause, restart, and go home while playing
+Pause, restart, and go home while playing
