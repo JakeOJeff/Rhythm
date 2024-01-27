@@ -1,6 +1,7 @@
 local endgame = {}
 local endgamebg = love.graphics.newImage("assets/menubg.png")
 endgamebg:setWrap('repeat', 'clampzero')
+local statuses = require 'src.tools.menustatus'
 
 local position = 0
 local endgameQ = 0
@@ -10,8 +11,34 @@ local displayCareer = false
 local displayScore = false
 fontS = love.graphics.newFont("fonts/Rimouski.otf",
                               fontSize + (5 / 10 * fontSize))
+font = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
+fontB = love.graphics.newFont("fonts/Rimouski.otf",
+                              fontSize + (8 / 10 * fontSize))
+
+local function replay_game()
+    songdone = true
+    endgame.setScene("game")
+end
+local function restart_session()
+    score = 0
+    sound:stop()
+    endgame.setScene("game")
+end
+local function main_menu()
+    love.event.quit("restart")
+end
 function endgame:load()
     startingX = 0
+    endgameM = menuengine.new(20, love.graphics.getHeight() - 5 * fontSize)
+    endgameM:addEntry("Replay [LOOP]", replay_game, args, fontB, {1,1,1}, {0, 1, 0})
+    endgameM:addSep()
+    endgameM:addEntry("Restart Session",restart_session, args, font, {1,1,1}, {.5, .5, .5} )
+    endgameM:addEntry("Menu", main_menu, args, font, {1,1,1}, {1, 0, 0})
+    menuengine.disable()
+    endgameM:setDisabled(false)
+    love.mouse.setVisible(true)
+    endgameM:setStatus(statuses[4])
+
 end
 
 function endgame:update(dt)
@@ -35,10 +62,12 @@ function endgame:update(dt)
     endgameQ = love.graphics.newQuad(-position, 0, endgamebg:getWidth() * 2,
                                      endgamebg:getHeight() * 2,
                                      endgamebg:getWidth(), endgamebg:getHeight())
+    menuengine.update()
+
 end
 
 function endgame:draw()
-    love.graphics.setFont(fontB)
+    love.graphics.setFont(font)
     sx = love.graphics:getWidth() / endgamebg:getWidth()
     sy = love.graphics:getHeight() / endgamebg:getHeight()
     love.graphics.draw(endgamebg, endgameQ, 0, 0, 0, sx, sy)
@@ -48,6 +77,7 @@ function endgame:draw()
     love.graphics.setFont(fontS)
     if displayScore then  love.graphics.print(careerscore, 90, 280) love.graphics.print(((careerscore)-score).." + "..score , 90, 340) end
     love.graphics.setColor(1,1,1)
+    menuengine.draw()
 
 end
 
@@ -57,7 +87,9 @@ function checkTimeEvent(timePass)
     end
     return false
 end
-function endgame:keypressed(key)
+function endgame:keypressed(key, scancode)
+    menuengine.keypressed(scancode)
+
     if key == "escape" then
         print(visualizer)
         score = 0
@@ -65,6 +97,9 @@ function endgame:keypressed(key)
         saveGame()
         love.event.quit("restart")
     end
+end
+function endgame:mousemoved(x, y, dx, dy, istouch)
+    menuengine.mousemoved(x, y)
 end
 function drawRotatedRectangle(mode, x, y, width, height, angle)
     -- We cannot rotate the rectangle directly, but we
@@ -76,4 +111,5 @@ function drawRotatedRectangle(mode, x, y, width, height, angle)
     --	love.graphics.rectangle(mode, -width/2, -height/2, width, height) -- origin in the middle
     love.graphics.pop()
 end
+
 return endgame

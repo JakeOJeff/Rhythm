@@ -25,8 +25,14 @@ if effects ~= "OFF" then
     Particle.size = math.random(1, 10)
 end
 
--- Initialize variables
+songdone = false
+isAllPressed = false
 
+-- Initialize variables
+mobile = false
+if love.system.getOS() == 'iOS' or love.system.getOS() == 'Android' then
+  mobile = true
+end
 function game:load()
     love.window.setFullscreen(false)
     lume = require "src.libs.lume"
@@ -51,9 +57,10 @@ function game:load()
 
     -- Consonants
     tileSpeed = tileSpeedMax
-    tileTimerCons = 0.32
+    tileTimerCons = 0.3
     tileTimer = tileTimerCons
     combo = 0
+    
     
 
     -- Button alpha values
@@ -63,7 +70,7 @@ function game:load()
     alp4 = 1
 
     -- Button fading delay
-    maxDelay = 0.1
+    maxDelay = 0.05
     delay = maxDelay
 
     state = "active"
@@ -73,11 +80,12 @@ function game:load()
 
     -- Font/Text
     animDelay = 2
-    fontSize = 30
-    font = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize)
+    fontSize = 25
+    fontGame = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
     fontSize2 = 15
-    font2 = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize2)
-    love.graphics.setFont(font)
+    fontGame2 = love.graphics.newFont("fonts/Rimouski.otf", fontSize2)
+    fontPopup = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize2 * 1.5)
+    love.graphics.setFont(fontGame)
 
     -- Background Hue
     rainH = 131
@@ -103,7 +111,9 @@ function game:load()
 
     -- Load Song
     if mode == "MUSIC" then
-
+        audioVol = 65
+        changingVol = false
+        changingVolTimer = 2
         if selectedSong <= maxPreBuiltSongs then
             soundData = love.sound.newSoundData("assets/audio/" ..
                                                     songlist[selectedSong].audio ..
@@ -121,6 +131,7 @@ function game:load()
         songtimeLeft = songduration - songcurrentTime
         songminutesLeft = math.floor(songtimeLeft / 60)
         songsecondsLeft = math.floor(songtimeLeft % 60)
+        soundonmute = false
 
 
     else
@@ -134,23 +145,40 @@ function game:load()
     dia = loadTheme("buton.png")
     tile1 = loadTheme("buton2.png")
     background = loadTheme("background.jpg")
-    startSong = 1.5 -- Seconds to start song
-    songdone = false
+    startSong = 2.25 -- Seconds to start song
 
 end
 
 function game:update(dt)
+    print(love.timer.getFPS())
 
     if mode == "MUSIC" then
+        if not soundonmute then
+            sound:setVolume(audioVol/100)
+        end
         if startSong > 0 then
             startSong = startSong - 1 * dt
+            tileupdate(dt)
         else
             startSong = 0
+            if sound:isPlaying() and not soundonmute then
+                tileupdate(dt)
+            end
         end
         if startSong == 0 then
             sound:play()
             sound:setLooping(true)
         end
+
+        if changingVol then
+            changingVolTimer = changingVolTimer - 1 * dt
+        end
+        if changingVolTimer <= 0 then
+            changingVol = false
+            changingVolTimer = 2
+        end
+    else
+        tileupdate(dt)
     end
     if combo > careercombo then
         careercombo = combo
@@ -165,6 +193,18 @@ function game:update(dt)
         songtimeLeft = songduration - songcurrentTime
         songminutesLeft = math.floor(songtimeLeft / 60)
         songsecondsLeft = math.floor(songtimeLeft % 60)
+
+        local mx, my = love.mouse.getPosition()
+        if my >= lg.getHeight() - 80 and my < lg.getHeight() - 75 then
+            if love.mouse.isDown(1) then
+                sound:setVolume(0)
+                soundonmute = true
+                sound:seek( mx/lg.getWidth() * songduration, "seconds")
+            else 
+                soundonmute = false
+                sound:setVolume(audioVol/100)
+            end
+        end
     end
     collectgarbage("collect")
     textAnim:update(dt)
@@ -205,8 +245,10 @@ function game:update(dt)
         bgX = -(background:getWidth() - sWidth) -- Reset position if it went too far to the left
         bgDirection = 1 -- Change direction to right
     end
-    tileupdate(dt)
 
+
+
+    -- lg.rectangle("fill", 0, lg.getHeight() - 80, songcurrentTime / songduration * lg.  etWidth(), 5)
     -- ============================================== 
 
     function game:keypressed(key)
@@ -225,11 +267,8 @@ function game:update(dt)
         end
 
         if key == "t" then
-            if selectedTheme < 3 then
-                selectedTheme = selectedTheme + 1
-            else
-                selectedTheme = 1
-            end
+            game.setScene("menu")
+
         end
         if key == "escape" then
             print(visualizer)
@@ -240,78 +279,118 @@ function game:update(dt)
         end
     end
 
-    if songtimeLeft <= 0.3 then
-        songdone = true
+    if songtimeLeft <= 0.3 and mode ~= "DESKTOP" and songdone ~= true then
+        sound:stop()
         game.setScene("endgame")
     end
 end
 
 function game:draw()
     lg.setColor(1, 1, 1)
+    if gBG == "ON" then
     lg.draw(background, bgX, 0)
+    else
+        lg.setBackgroundColor(HSL(rainH / 255, rainS, rainL, 0.3))
+
+    end
     lg.setColor(themes[selectedTheme].color)
     spectrum.draw()
-    lg.setColor(235 / 255, 64 / 255, 52 / 255, alp1)
-    lg.draw(dia, dia1X, 20)
-    lg.setColor(235 / 255, 171 / 255, 52 / 255, alp2)
-    lg.draw(dia, dia2X, 20)
-    lg.setColor(232 / 255, 235 / 255, 52 / 255, alp3)
-    lg.draw(dia, dia3X, 20)
-    lg.setColor(104 / 255, 235 / 255, 52 / 255, alp4)
-    lg.draw(dia, dia4X, 20)
+    local y1,y2,y3,y4 = (1.5 - alp1)*25,(1.5 - alp2)*25,(1.5 - alp3)*25,(1.5 - alp4)*25
+    local c1,c2,c3,c4 = {235 / 255, 64 / 255, 52 / 255, alp1},{235 / 255, 171 / 255, 52 / 255, alp2},{232 / 255, 235 / 255, 52 / 255, alp3},{104 / 255, 235 / 255, 52 / 255, alp4}
+
+    
+    if isAllPressed then
+        c1,c2,c3,c4 = {1,1,1,0.2},{1,1,1,0.2},{1,1,1,0.2},{1,1,1,0.2}
+        y1,y2,y3,y4 = 20,20,20,20
+    else
+        if buttonAnimation == "ON" then
+            y1,y2,y3,y4 = (1.5 - alp1)*25,(1.5 - alp2)*25,(1.5 - alp3)*25,(1.5 - alp4)*25
+        else
+            y1,y2,y3,y4 = 20,20,20,20
+        end
+        if buttonColor == "ON" then
+            c1,c2,c3,c4 = {235 / 255, 64 / 255, 52 / 255, alp1},{235 / 255, 171 / 255, 52 / 255, alp2},{232 / 255, 235 / 255, 52 / 255, alp3},{104 / 255, 235 / 255, 52 / 255, alp4}
+        else
+            c1,c2,c3,c4 = {1,1,1,alp1},{1,1,1,alp2},{1,1,1,alp3},{1,1,1,alp4}
+        end
+    end
+    lg.setColor(c1)
+    lg.draw(dia, dia1X, y1)
+    lg.setColor(c2)
+    lg.draw(dia, dia2X,  y2)
+    lg.setColor(c3)
+    lg.draw(dia, dia3X,  y3)
+    lg.setColor(c4)
+    lg.draw(dia, dia4X,  y4)
 
     lg.setColor(1, 1, 1)
 
     for i, tile in ipairs(tiles) do lg.draw(tile.img, tile.x, tile.y) end
 
-    lg.setFont(font)
+    lg.setFont(fontGame)
 
+    if beatline == "ON" then
     lg.setColor(inst, 1, inst)
     lg.rectangle("fill", 0, 10, lg.getWidth(), 5)
     lg.rectangle("fill", 0, 25 + dia:getHeight(), lg.getWidth(), 5)
-
-    lg.setColor(HSL(rainH / 255, rainS, rainL, 0.3))
+    end
 
     -- If you're wondering why i didn't just do bgThemeColor = themes[selectTheme].color, it is because it changes the value of the themes.color entirely instead of just a small bit
+    if gameui == "ON" then
     bgThemeColor = {}
     for i = 1, #themes[selectedTheme].color do
         table.insert(bgThemeColor, themes[selectedTheme].color[i])
     end
-    table.insert(bgThemeColor, 0.1) -- Alpha value for the theme color
+    table.insert(bgThemeColor, 0.3) -- Alpha value for the theme color
     lg.setColor(bgThemeColor)
     lg.rectangle("fill", 0, lg.getHeight() - 80, lg.getWidth(), 60)
 
     lg.setColor(1, 1, 1)
-    lg.print("COMBO x" .. combo .. " | Points " .. score .. " | Misses " ..
+    lg.print("COMBO x" .. combo .. "| Points " .. score .. "| Misses " ..
                  misses, 10, lg.getHeight() - 75)
 
     if mode == "MUSIC" then
         lg.setColor(themes[selectedTheme].color)
 
+
         lg.rectangle("fill", 0, lg.getHeight() - 80,
                      songcurrentTime / songduration * lg.getWidth(), 5)
         lg.setColor(1, 1, 1)
-        lg.setFont(font2)
+        lg.setFont(fontGame2)
         lg.print(songlist[selectedSong].name .. " - " ..
                      songlist[selectedSong].artist .. " " .. songminutesLeft ..
-                     ":" .. songsecondsLeft, 10, lg.getHeight() - 40)
+                     ":" .. string.format("%0.2i",songsecondsLeft), 10, lg.getHeight() - 40)
+
+        if changingVol then
+            lg.print("+"..(audioVol/100 * 6.6).."db",10,  lg.getHeight() - 120)
+            lg.rectangle("fill", 10, lg.getHeight() - 100, 60, 10, 5, 5)
+            lg.setColor(0,1,0)
+            lg.rectangle("fill", 10, lg.getHeight() - 100, audioVol/100 * 60, 10, 5, 5)
+            lg.setColor(1,1,1)
+        end
     end
+end
     if effects ~= "OFF" then
         for _, particle in ipairs(particles) do particle:draw() end
     end
-    lg.setFont(font)
+    lg.setFont(fontGame)
 
+    if gameui == "ON" then
+        lg.setFont(fontPopup)
     textAnim:draw()
     shack:apply()
+    end
 end
 
 -- Change tileSpeed values
 function game:wheelmoved(x, y)
-    if y > 0 then
-        tileSpeedMax = tileSpeedMax + 10
-    elseif y < 0 then
-        if tileSpeedMax > 10 then tileSpeedMax = tileSpeedMax - 10 end
+    changingVol = true
+    if y < 0 and audioVol > 5 then
+        audioVol = audioVol - 5
+    elseif y > 0 and audioVol < 100 then
+        audioVol = audioVol + 5
     end
+
 end
 
 function game:mousemoved(x, y, dx, dy, istouch) end
@@ -337,9 +416,15 @@ function saveGame()
     data.song = selectedSong
     data.visualizer = visualizer
     data.effects = effects
+    data.gBG = gBG
+    data.beatline = beatline
+    data.buttonColor = buttonColor
+    data.buttonAnimation = buttonAnimation
+    data.gameui = gameui
     data.mode = mode
 
     data.currentlevel = currentlevel
+
 
     serialized = lume.serialize(data)
     -- The filetype actually doesn't matter, and can even be omitted.
@@ -351,5 +436,4 @@ function loadTheme(item)
     return love.graphics.newImage(
                "assets/themes/" .. themes[selectedTheme].name .. "/" .. item)
 end
-
 return game

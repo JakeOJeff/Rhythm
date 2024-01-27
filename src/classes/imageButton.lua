@@ -16,6 +16,7 @@ function imgbutton:initialize(x, y, img, hoverimg, code, rx, ry)
 	self.height = img:getHeight()
 	self.rx = rx or 0
 	self.ry = ry or 0
+    self.color = {1,1,1}
 
     self.hover = false
     self.clicked = false
@@ -31,15 +32,17 @@ function imgbutton:update()
     local x,y = love.mouse.getPosition()
     if x < self.x + self.width and x > self.x and y < self.y + self.height and y > self.y then 
         self.hover = true
+        self.color = {0,1,0}
     else
         self.hover = false
+        self.color = {1,1,1}
     end
 end
 
 function imgbutton:draw()
-
+    love.graphics.setColor(self.color)
 	love.graphics.draw(self.img, self.x, self.y)
-
+    love.graphics.setColor(1,1,1)
 
 end 
 function imgbutton:mousepressed(x, y, button)
@@ -55,6 +58,11 @@ function imgbutton:mousepressed(x, y, button)
     end
 
 
+end
+function mousepressed_imgbuttons(x, y, button)
+    for i, v in pairs(imgbuttons) do
+		v:mousepressed(x, y, button)
+	end
 end
 function update_imgbuttons()
 	for i, v in pairs(imgbuttons) do

@@ -1,10 +1,12 @@
 Fix COMBO system, make it better - Done 06/01/24
 Fix Menu Music Mute System - Done 11/01/2024
 Added Replay and Menu - Done 11/01/2024
-Fix Replay menuengine
-Advanced Display Settings
+Fix Replay menuengine - Done 20/01/2024
+Advanced Display Settings - Done 24/01/2024
+volume slider - Done 25/01/2024
+Remove 't' to change theme option // Done 12/01/2024
+Pause, restart, and go home while playing // Done 19/01/2024
+
 Make tutorial Page
 Add custom themes option
-volume slider
-Remove 't' to change theme option
-Pause, restart, and go home while playing
+Add button-interface to open up song menu

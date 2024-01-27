@@ -13,7 +13,7 @@ function love.load()
     -- Print the names of the items
     for _, item in ipairs(items) do
         table.insert(customsonglist, {
-            name = item:match("(.+)%..+$")
+            name = item:match('(.+)%.')
             artist = "Unknown",
             audio = item
         })

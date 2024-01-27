@@ -13,5 +13,7 @@ function cmath.round(num, dp)
     local mult = 10^(dp or 0)
     return math.floor(num * mult + 0.5)/mult
 end
-
+function cmath.circleDist(x1,x2,y1,y2)
+    return math.sqrt((x2-x1)^2 + (y2-y1)^2)
+end
 return cmath

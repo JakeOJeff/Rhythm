@@ -1,5 +1,11 @@
 local themes = {}
 
+exists = love.filesystem.getInfo( "Themes" )
+if not exists then
+success = love.filesystem.createDirectory( "Themes" )
+end
+local items = love.filesystem.getDirectoryItems("Themes")
+
 themes[1] = {
     color = {0.3, 0.3, 0.3},
     name = "dark"

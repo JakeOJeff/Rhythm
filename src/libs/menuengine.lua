@@ -173,12 +173,13 @@ function menuengine.new(x, y, font, space)
                                          self.entries[i].x,
                                          love.graphics.getHeight() - 100,
                                          love.graphics.getWidth() - 20)
-                                         --love.graphics.push()
-                                         --sc = self.scissor
-                                         --love.graphics.setScissor(sc[1],sc[2],sc[3],sc[4])
-                                         --love.graphics.pop()
+                    -- love.graphics.push()
+                    -- sc = self.scissor
+                    -- love.graphics.setScissor(sc[1],sc[2],sc[3],sc[4])
+                    -- love.graphics.pop()
                 else
                     love.graphics.setColor(self.entries[i].colorNormal)
+
                     love.graphics.print(self.entries[i].normalSelectedBegin ..
                                             self.entries[i].text ..
                                             self.entries[i].normalSelectedEnd,
@@ -212,9 +213,7 @@ function menuengine.new(x, y, font, space)
     -- Disable Mouse
     function self:mouseDisable() self.mouseDisabled = true end
 
-    function self:setScissor(table)
-        self.scissor = table
-    end
+    function self:setScissor(table) self.scissor = table end
 
     function self:setColorNormal(color)
         local i
@@ -373,6 +372,17 @@ function menuengine.enable()
     for i = 1, #menus do menus[i]:setDisabled(false) end
 end
 
+function menuengine.on()
+    local i
+    for i = 1, #menus do
+        for j = 1, #menus[i].entries do
+        if menus[i].entries[j].disabled then 
+            return true 
+        end
+    end
+        return false
+    end
+end
 -- TODO: Everything after that is not documented yet, I don't know if they are necessary. Maybe they will be removed...
 
 -- Set Font for EVERY Menu

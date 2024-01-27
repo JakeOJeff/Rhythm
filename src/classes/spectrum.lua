@@ -48,9 +48,8 @@ function spectro_up(obj, sdata)
 end
 function create_tiles(dt)
     
-  if state == "active" then
     tileTimer = tileTimer - (1 * dt)
-    if tileTimer < 0 and #tiles < 17 then
+    if tileTimer < 0 and #tiles < 60  then
         --[[if currentTimeData < #timeDatas then
             currentTimeData = currentTimeData + 1
         else
@@ -84,8 +83,8 @@ function create_tiles(dt)
                 table.insert(tiles, tile)
             end
             tileTimer = tileTimerCons
-        elseif option == 7 then
-            tileTimer = tileTimerCons
+        --elseif option == 7 then
+           -- tileTimer = tileTimerCons
         else
             randomTile = math.random(1, 32)
             tile = {
@@ -98,7 +97,6 @@ function create_tiles(dt)
             tileTimer = tileTimerCons
         end
     end
-end
    --[[if UpdateSpectrum then
     for i = 1, 10 do
         if spectrum[i]:abs() > 100 then
@@ -151,7 +149,7 @@ function spectrum.load()
     -- soundData = love.sound.newSoundData("assets/audio/TS22.mp3")
     -- sound = love.audio.newSource(soundData)
     -- sound:play()
-    love.mouse.setVisible(false)
+    love.mouse.setVisible(true)
 end
 
 time = 0
