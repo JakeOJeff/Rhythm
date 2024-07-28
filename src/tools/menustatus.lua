@@ -48,6 +48,10 @@ local statuses = {
         "Tester/ Features", -- ✝chigoz👑☯/ripm_onkey
         "Tester/ Support", -- DoofyMick/realmood
         "Tester/ Features", -- Galaxy/adolf_rizz1er
+        "Tester/ Support", -- Madhav/habibi_madhav
+        "Tester/ Bug Reports", -- Maxxie/mintchococh1p
+        "Tester/ Support", -- Ashutosh/ashtoc_46
+        "Tester/ Moral Support", -- Leny/Lenysflora
         "", -- SEPERATOR
         "Exit to Menu", -- MENU
     },
@@ -60,6 +64,7 @@ local statuses = {
         "Enable Button Color", -- Button Color
         "Enable Button Animation", -- Button Animation
         "Enable Game UI", -- Game UI
+        "Time Display [ LEFT = Time Left, CURRENT = Current Time]", -- Time Style
         "", -- SEPERATOR
         "Save Chosen settings", -- SAVE
         "Exit without Saving" -- EXIT ( UNSAVED )
