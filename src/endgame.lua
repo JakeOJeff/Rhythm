@@ -2,6 +2,7 @@ local endgame = {}
 local endgamebg = love.graphics.newImage("assets/menubg.png")
 endgamebg:setWrap('repeat', 'clampzero')
 local statuses = require 'src.tools.menustatus'
+local menuengine = require 'src.libs.menuengine'
 
 local position = 0
 local endgameQ = 0
@@ -9,10 +10,10 @@ local time = 0
 
 local displayCareer = false
 local displayScore = false
-fontS = love.graphics.newFont("fonts/Rimouski.otf",
-                              fontSize + (5 / 10 * fontSize))
-font = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
-fontB = love.graphics.newFont("fonts/Rimouski.otf",
+
+local fontSize = 20
+local font = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
+local fontB = love.graphics.newFont("fonts/Rimouski.otf",
                               fontSize + (8 / 10 * fontSize))
 
 local function replay_game()
@@ -28,13 +29,14 @@ local function main_menu()
     love.event.quit("restart")
 end
 function endgame:load()
+    menuengine.disable() -- Disable every Menu...
+
     startingX = 0
-    endgameM = menuengine.new(20, love.graphics.getHeight() - 5 * fontSize)
+    endgameM = menuengine.new(20, 20)
     endgameM:addEntry("Replay [LOOP]", replay_game, args, fontB, {1,1,1}, {0, 1, 0})
     endgameM:addSep()
     endgameM:addEntry("Restart Session",restart_session, args, font, {1,1,1}, {.5, .5, .5} )
     endgameM:addEntry("Menu", main_menu, args, font, {1,1,1}, {1, 0, 0})
-    menuengine.disable()
     endgameM:setDisabled(false)
     love.mouse.setVisible(true)
     endgameM:setStatus(statuses[4])
@@ -42,6 +44,7 @@ function endgame:load()
 end
 
 function endgame:update(dt)
+    menuengine.update(dt)
 
     if startingX < 900 then
         startingX = startingX + 40
@@ -62,7 +65,6 @@ function endgame:update(dt)
     endgameQ = love.graphics.newQuad(-position, 0, endgamebg:getWidth() * 2,
                                      endgamebg:getHeight() * 2,
                                      endgamebg:getWidth(), endgamebg:getHeight())
-    menuengine.update()
 
 end
 
@@ -74,7 +76,7 @@ function endgame:draw()
     drawRotatedRectangle("fill", -200, 300, startingX, 250, -0.3)
     love.graphics.setColor(0,0,0)
     if displayCareer then love.graphics.print("NEW SCORE", 70, 220) end
-    love.graphics.setFont(fontS)
+    love.graphics.setFont(fontB)
     if displayScore then  love.graphics.print(careerscore, 90, 280) love.graphics.print(((careerscore)-score).." + "..score , 90, 340) end
     love.graphics.setColor(1,1,1)
     menuengine.draw()

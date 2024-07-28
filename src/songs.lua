@@ -1,77 +1,64 @@
-local songlist = {
-
-}
-exists = love.filesystem.getInfo( "Audios" )
-if not exists then
-success = love.filesystem.createDirectory( "Audios" )
-end
+local songlist = {}
+exists = love.filesystem.getInfo("Audios")
+if not exists then success = love.filesystem.createDirectory("Audios") end
 local items = love.filesystem.getDirectoryItems("Audios")
+local mainitems = love.filesystem.getDirectoryItems("assets/audio/songs")
 
-table.insert(songlist, {
-    name = "22",
-    artist = "Taylor Swift",
-    audio = "TS22"
-})
-table.insert(songlist, {
-    name = "Let Her Go",
-    artist = "Passenger",
-    audio = "PRLetHerGo"
-})
-table.insert(songlist, {
-    name = "I Lived",
-    artist = "OneRepublic",
-    audio = "ORILived"
-})
-table.insert(songlist, {
-    name = "Ho Hey",
-    artist = "The Lumineers",
-    audio = "TLHoHey"
-})
-table.insert(songlist, {
-    name = "When I Was Your Man",
-    artist = "Bruno Mars",
-    audio = "BMWhenIWasYourMan"
-})
+-- PREBUILT SONGS
+for i = 1, #mainitems do
+    local item = mainitems[i]
+    if love.filesystem.getInfo("assets/audio/songs/" .. item, 'directory') then
+        if love.filesystem.getInfo("assets/audio/songs/" .. item .. '/index.mp3', 'file') then
+            print(item)
 
-table.insert(songlist, {
-    name = "Careless Whisper",
-    artist = "George Michael",
-    audio = "GMCarelessWhisper"
-})
-table.insert(songlist, {
-    name = "Never Gonna Give You Up",
-    artist = "Rick Astley",
-    audio = "RANeverGonnaGiveYouUp"
-})
-table.insert(songlist, {
-    name = "Call Me Maybe",
-    artist = "Carly Rae Jepsen",
-    audio = "CRJCallMeMaybe"
-})
-table.insert(songlist, {
-    name = "This Town",
-    artist = "Niall Horan",
-    audio = "NHThisTown"
-})
-maxPreBuiltSongs = #songlist
-function splitText(text)
-    local before, after = string.match(text, "([^%-]*)%s-%s*(.*)")
-    after = after:sub(2, #after):match("^%s*(.-)%s*$")
-    return before, after
-end
-for _, item in ipairs(items) do
-    local hasHyphen = item:match("(.+)%..+$"):find(" - ")
-    if hasHyphen then
-        internalartist, internalname = splitText(item:match("(.+)%..+$"))
-    else
-        internalname = item:match("(.+)%..+$")
-        internalartist = "Unknown"
+            local hasHyphen = item:find(" - ")
+            if hasHyphen then
+                internalartist, internalname = splitText(item)
+            else
+                internalname = item
+                internalartist = "Unknown"
+            end
+            local song = {
+                name = internalname,
+                artist = internalartist,
+                audio = item .. "/index"
+            }
+            if love.filesystem.getInfo("assets/audio/songs/"..item.."/lyrics.lua", 'file') then
+                song["lyrics"] = item.."/lyrics"
+            end
+            print(song["lyrics"])
+            table.insert(songlist, song)
+        end
     end
-    
-    table.insert(songlist, {
-        name = internalname,
-        artist = internalartist,
-        audio = item:match("(.+)%..+$")
-    })
+end
+maxPreBuiltSongs = #songlist
+
+-- CUSTOM SONGS
+
+for i = 1, #items do
+    local item = items[i]
+    if love.filesystem.getInfo("Audios/" .. item, 'directory') then
+        if love.filesystem.getInfo("Audios/" .. item .. '/index.mp3', 'file') then
+            print(item)
+
+            local hasHyphen = item:find(" - ")
+            if hasHyphen then
+                internalartist, internalname = splitText(item)
+            else
+                internalname = item
+                internalartist = "Unknown"
+            end
+            local song = {
+                name = "[C] "..internalname,
+                artist = internalartist,
+                audio = item .. "/index"
+            }
+            if love.filesystem.getInfo("Audios/"..item.."/lyrics.lua", 'file') then
+                song["lyrics"] = item.."/lyrics"
+            end
+            print(song["lyrics"])
+            table.insert(songlist, song)
+        end
+    end
 end
 return songlist

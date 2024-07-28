@@ -21,18 +21,22 @@ textAnim = require 'src.libs.text'
 
 if effects ~= "OFF" then
     particles = {}
-    Particle.color = {1, 1, 1}
+    Particle.color = {1,1,1}
     Particle.size = math.random(1, 10)
 end
 
+-- GLOBALS
 songdone = false
 isAllPressed = false
+startSong = 2.75 -- Seconds to start song
 
 -- Initialize variables
 mobile = false
 if love.system.getOS() == 'iOS' or love.system.getOS() == 'Android' then
   mobile = true
 end
+
+
 function game:load()
     love.window.setFullscreen(false)
     lume = require "src.libs.lume"
@@ -57,7 +61,7 @@ function game:load()
 
     -- Consonants
     tileSpeed = tileSpeedMax
-    tileTimerCons = 0.3
+    tileTimerCons = 60/104
     tileTimer = tileTimerCons
     combo = 0
     
@@ -84,7 +88,7 @@ function game:load()
     fontGame = love.graphics.newFont("fonts/Rimouski.otf", fontSize)
     fontSize2 = 15
     fontGame2 = love.graphics.newFont("fonts/Rimouski.otf", fontSize2)
-    fontPopup = love.graphics.newFont("fonts/Sweet_Corn.ttf", fontSize2 * 1.5)
+    fontPopup = love.graphics.newFont("fonts/Salmon.ttf", fontSize2 * 1.5)
     love.graphics.setFont(fontGame)
 
     -- Background Hue
@@ -115,7 +119,7 @@ function game:load()
         changingVol = false
         changingVolTimer = 2
         if selectedSong <= maxPreBuiltSongs then
-            soundData = love.sound.newSoundData("assets/audio/" ..
+            soundData = love.sound.newSoundData("assets/audio/songs/" ..
                                                     songlist[selectedSong].audio ..
                                                     ".mp3")
             sound = love.audio.newSource(soundData)
@@ -145,13 +149,11 @@ function game:load()
     dia = loadTheme("buton.png")
     tile1 = loadTheme("buton2.png")
     background = loadTheme("background.jpg")
-    startSong = 2.25 -- Seconds to start song
 
 end
 
 function game:update(dt)
-    print(love.timer.getFPS())
-
+    timePlayed = timePlayed + 1 * dt
     if mode == "MUSIC" then
         if not soundonmute then
             sound:setVolume(audioVol/100)
@@ -290,8 +292,9 @@ function game:draw()
     if gBG == "ON" then
     lg.draw(background, bgX, 0)
     else
-        lg.setBackgroundColor(HSL(rainH / 255, rainS, rainL, 0.3))
+        --lg.setBackgroundColor(HSL(rainH / 255, rainS, rainL, 0.3))
 
+        lg.setBackgroundColor(basecolor)
     end
     lg.setColor(themes[selectedTheme].color)
     spectrum.draw()
@@ -357,6 +360,14 @@ function game:draw()
                      songcurrentTime / songduration * lg.getWidth(), 5)
         lg.setColor(1, 1, 1)
         lg.setFont(fontGame2)
+        local timeText = ""
+        if timeStyle == "LEFT" then
+            timeText = songminutesLeft .. ":" .. string.format("%0.2i",songsecondsLeft)
+        elseif timeStyle == "CURRENT" then
+            local songCurrentMinute = math.floor(songcurrentTime / 60)
+            local songCurrentSecond = math.floor(songcurrentTime % 60)
+            timeText = songCurrentMinute .. ":" .. string.format("%0.2i",songCurrentSecond)
+        end
         lg.print(songlist[selectedSong].name .. " - " ..
                      songlist[selectedSong].artist .. " " .. songminutesLeft ..
                      ":" .. string.format("%0.2i",songsecondsLeft), 10, lg.getHeight() - 40)
@@ -403,9 +414,9 @@ function saveGame()
             "Hello! Thank you for supporting us by playing this. We hope you have a Great time!"
         local buttons = {"Thank you <3", "Help", escapebutton = 1}
 
-        local pressedbutton = love.window
+        local pressedbutton = love.window 
                                   .showMessageBox(title, message, buttons)
-        if pressedbutton == 2 then love.system.openURL("https://wix.com") end
+        if pressedbutton == 2 then love.system.openURL("https://ritium-spot.glitch.me/") end
     end
     data = {}
     data.careerscore = careerscore
@@ -421,7 +432,10 @@ function saveGame()
     data.buttonColor = buttonColor
     data.buttonAnimation = buttonAnimation
     data.gameui = gameui
+    data.timeStyle = timeStyle
+    data.basecolor = basecolor
     data.mode = mode
+    data.timePlayed = timePlayed
 
     data.currentlevel = currentlevel
 
