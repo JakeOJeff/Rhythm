@@ -6,4 +6,4 @@ Rhythm Game
 [Download BETA Version](https://jakeojeff.itch.io/ritium-spot-testing)
 
 # Version 
-## 0.945
+## 1.357
