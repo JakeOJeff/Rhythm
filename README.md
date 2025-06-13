@@ -12,10 +12,10 @@ In Rhythm, players must press keys in time with incoming notes. These notes fall
 
 | Key | Lane |
 |-----|------|
-| A   | Lane 1 |
-| S   | Lane 2 |
-| D   | Lane 3 |
-| F   | Lane 4 |
+| D   | Lane 1 |
+| F   | Lane 2 |
+| J   | Lane 3 |
+| K   | Lane 4 |
 
 Visual cues scroll down the screen in sync with the background music, guiding the player to time their inputs accurately.
 
