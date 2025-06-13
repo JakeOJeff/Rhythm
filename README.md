@@ -1,4 +1,4 @@
-# 🎵 Rhythm
+# 🎵 Rhythm ( AKA Ritium Spot )
 
 **Rhythm** is a fast-paced, minimalist rhythm game built with [LÖVE 2D](https://love2d.org/), a game engine that uses Lua. The project explores core rhythm game mechanics—precise timing, beatmapping, and real-time player input—wrapped in a lightweight and easily modifiable prototype. This game is ideal for those interested in learning how rhythm-based systems work under the hood.
 
@@ -77,12 +77,6 @@ Rhythm was built from the ground up to experiment with the fundamental logic beh
 - 🌈 Visual effects for combos and successful hits
 - 🌐 Online leaderboard and song sharing
 - 🎮 Gamepad support
-
----
-
-## 👀 Preview
-
-> *(You can add a screenshot or gameplay GIF here to showcase visuals and timing.)*
 
 ---
 
