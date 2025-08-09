@@ -4,4 +4,4 @@
 
  - When adding a new menu item,
  - Make sure to edit the entries order in menu.update()
- - Make sure to edit the menustatus
+ - Make sure to edit the menustatus]]

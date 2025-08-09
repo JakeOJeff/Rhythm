@@ -272,7 +272,7 @@ function menu:load()
     careercombo = data.careercombo or 0
     combo = data.combo or combo
     selectedTheme = data.theme or 1
-    selectedSong =  song(data.song) or 1 
+    selectedSong =  song(2) or 1 -- Error here
     timePlayed = data.timePlayed or 0
     visualizer = data.visualizer or "ON"
     effects = data.effects or "ON"
